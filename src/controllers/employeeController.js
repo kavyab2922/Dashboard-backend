@@ -152,12 +152,8 @@ exports.getHRContacts = async (req, res, next) => {
       FROM hcm.employees e
       LEFT JOIN hcm.departments d ON e.department_id = d.id
       LEFT JOIN hcm.designations des ON e.designation_id = des.id
-      WHERE (d.department_name ILIKE '%hr%' OR d.department_name ILIKE '%people%'
-         OR des.designation_name ILIKE '%hr%' OR des.designation_name ILIKE '%talent%'
-         OR des.designation_name ILIKE '%management%')
-         AND e.is_active = true AND e.is_deleted = false
-      ORDER BY e.first_name
-      LIMIT 30
+      WHERE e.is_active = true AND COALESCE(e.is_deleted, false) = false
+      ORDER BY e.first_name, e.last_name
     `);
 
     const contacts = result.rows.map((row, idx) => {
