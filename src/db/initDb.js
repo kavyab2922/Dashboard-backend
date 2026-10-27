@@ -145,6 +145,46 @@ async function initDb() {
       );
     `);
 
+    // 10. Privacy-aware team mood and appreciation tables
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS hcm.mood_checkins (
+        id SERIAL PRIMARY KEY,
+        employee_id INTEGER NOT NULL,
+        mood VARCHAR(20) NOT NULL CHECK (mood IN ('amazing', 'happy', 'calm', 'okay', 'sad', 'stressed')),
+        visibility VARCHAR(20) NOT NULL DEFAULT 'private' CHECK (visibility IN ('private', 'colleagues', 'selected')),
+        checkin_date DATE NOT NULL DEFAULT CURRENT_DATE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (employee_id, checkin_date)
+      );
+      CREATE INDEX IF NOT EXISTS mood_checkins_visibility_date_idx ON hcm.mood_checkins (visibility, checkin_date);
+      CREATE TABLE IF NOT EXISTS hcm.mood_checkin_recipients (
+        mood_checkin_id INTEGER NOT NULL REFERENCES hcm.mood_checkins(id) ON DELETE CASCADE,
+        employee_id INTEGER NOT NULL,
+        PRIMARY KEY (mood_checkin_id, employee_id)
+      );
+      CREATE TABLE IF NOT EXISTS hcm.mood_reactions (
+        id SERIAL PRIMARY KEY,
+        mood_checkin_id INTEGER NOT NULL REFERENCES hcm.mood_checkins(id) ON DELETE CASCADE,
+        employee_id INTEGER NOT NULL,
+        reaction VARCHAR(8) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (mood_checkin_id, employee_id, reaction)
+      );
+      CREATE TABLE IF NOT EXISTS hcm.mood_messages (
+        id SERIAL PRIMARY KEY,
+        mood_checkin_id INTEGER NOT NULL REFERENCES hcm.mood_checkins(id) ON DELETE CASCADE,
+        sender_id INTEGER NOT NULL,
+        recipient_id INTEGER NOT NULL,
+        kind VARCHAR(20) NOT NULL CHECK (kind IN ('support', 'celebration')),
+        message TEXT NOT NULL CHECK (char_length(message) BETWEEN 1 AND 500),
+        offer_to_chat BOOLEAN NOT NULL DEFAULT false,
+        chat_status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (chat_status IN ('pending', 'accepted', 'declined')),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS mood_messages_recipient_idx ON hcm.mood_messages (recipient_id, created_at DESC);
+    `);
+
     // Check if seeding is needed for announcements
     const countAnnounce = await client.query('SELECT COUNT(*) FROM hcm.announcements');
     if (parseInt(countAnnounce.rows[0].count, 10) === 0) {

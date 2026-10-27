@@ -15,6 +15,7 @@ const courseController = require('../controllers/courseController');
 const faqController = require('../controllers/faqController');
 const gameController = require('../controllers/gameController');
 const dashboardController = require('../controllers/dashboardController');
+const moodController = require('../controllers/moodController');
 const uploadController = require('../controllers/uploadController');
 const { pool } = require('../config/db');
 const redis = require('../config/redis');
@@ -87,6 +88,15 @@ router.get('/games', authenticate, gameController.getAllGames);
 
 // Dashboard Summary
 router.get('/dashboard/summary', authenticate, dashboardController.getDashboardSummary);
+
+// Team Mood & Appreciation
+router.get('/moods/state', authenticate, moodController.getMoodState);
+router.put('/moods/today', authenticate, moodController.saveMood);
+router.get('/moods/team', authenticate, moodController.getTeamMoods);
+router.post('/moods/:id/reactions', authenticate, moodController.addReaction);
+router.post('/moods/:id/messages', authenticate, moodController.sendMessage);
+router.get('/mood-messages', authenticate, moodController.getMessages);
+router.put('/mood-messages/:id/chat', authenticate, moodController.respondToChatOffer);
 
 // File Upload
 router.post('/upload', authenticate, upload.single('file'), uploadController.uploadFile);
