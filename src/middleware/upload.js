@@ -1,28 +1,17 @@
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-
-const uploadDir = process.env.UPLOAD_PATH || './uploads';
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
-  },
-});
 
 const maxFileSize = parseInt(process.env.MAX_FILE_SIZE || '5242880', 10);
+const allowedImageTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: maxFileSize },
+  fileFilter: (req, file, callback) => {
+    if (!allowedImageTypes.has(file.mimetype)) {
+      return callback(new multer.MulterError('LIMIT_UNEXPECTED_FILE', 'file'));
+    }
+    callback(null, true);
+  },
 });
 
 module.exports = upload;

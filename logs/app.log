@@ -7956,3 +7956,56 @@
 {"duration":40,"level":"debug","message":"Executed query","rows":11,"service":"hrobit-backend","text":"\n      SELECT id, title, subtitle, difficulty, description, icon, color, available\n      FROM hcm.ga","timestamp":"2026-10-27 17:56:00"}
 {"level":"debug","message":"GET /api/employees","service":"hrobit-backend","timestamp":"2026-10-27 17:56:00"}
 {"level":"debug","message":"GET /api/celebrations","service":"hrobit-backend","timestamp":"2026-10-27 17:56:01"}
+{"level":"debug","message":"GET /api/auth/me","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/announcements","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/events","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/quick-links","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/hr-contacts","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/kudos","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"duration":87,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rs","timestamp":"2026-10-27 17:57:12"}
+{"duration":55,"level":"debug","message":"Executed query","rows":6,"service":"hrobit-backend","text":"\n      SELECT id, title, description, category, url, icon, placeholder, sort_order\n      FROM hcm.qu","timestamp":"2026-10-27 17:57:12"}
+{"duration":91,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, details, category, priority, pinned, read, image,\n            ","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"duration":66,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n      SELECT id, from_name AS \"from\", to_name AS \"to\", category, message, initials, color,\n        ","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/courses","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"duration":110,"level":"debug","message":"Executed query","rows":728,"service":"hrobit-backend","text":"\n      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.phone,\n         ","timestamp":"2026-10-27 17:57:12"}
+{"duration":67,"level":"debug","message":"Executed query","rows":10,"service":"hrobit-backend","text":"\n      SELECT DISTINCT ON (LOWER(TRIM(holiday_name)), start_date::date)\n             id, holiday_nam","timestamp":"2026-10-27 17:57:12"}
+{"duration":159,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-27 17:57:12"}
+{"error":"invalid input syntax for type integer: \"keycloak:srinagaraj.p@simplify3x.com\"","level":"error","message":"Database query error","service":"hrobit-backend","text":"\n      SELECT id, title, detail, type, read, time, created_at\n      FROM hcm.notifications\n      WHERE employee_id = $1 OR employee_id IS NULL\n      ORDER BY id DESC\n    ","timestamp":"2026-10-27 17:57:12"}
+{"level":"error","message":"Unhandled API Error: invalid input syntax for type integer: \"keycloak:srinagaraj.p@simplify3x.com\"","path":"/api/notifications","service":"hrobit-backend","stack":"error: invalid input syntax for type integer: \"keycloak:srinagaraj.p@simplify3x.com\"\n    at C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async query (C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\src\\config\\db.js:32:19)\n    at async exports.getAllNotifications (C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\src\\controllers\\notificationController.js:5:20)","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/faqs","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"duration":53,"level":"debug","message":"Executed query","rows":8,"service":"hrobit-backend","text":"\n      SELECT id, title, provider, category, level, duration, access, certificate, description, url,","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/games","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/employees","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/celebrations","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/quick-links","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/announcements","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"duration":11,"level":"debug","message":"Executed query","rows":6,"service":"hrobit-backend","text":"\n      SELECT id, category, question, answer\n      FROM hcm.faqs\n      ORDER BY id ASC\n    ","timestamp":"2026-10-27 17:57:12"}
+{"duration":10,"level":"debug","message":"Executed query","rows":11,"service":"hrobit-backend","text":"\n      SELECT id, title, subtitle, difficulty, description, icon, color, available\n      FROM hcm.ga","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/kudos","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"duration":17,"level":"debug","message":"Executed query","rows":6,"service":"hrobit-backend","text":"\n      SELECT id, title, description, category, url, icon, placeholder, sort_order\n      FROM hcm.qu","timestamp":"2026-10-27 17:57:12"}
+{"duration":17,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, details, category, priority, pinned, read, image,\n            ","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/hr-contacts","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/events","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"duration":10,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n      SELECT id, from_name AS \"from\", to_name AS \"to\", category, message, initials, color,\n        ","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/auth/me","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"duration":12,"level":"debug","message":"Executed query","rows":728,"service":"hrobit-backend","text":"\n      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.phone,\n         ","timestamp":"2026-10-27 17:57:12"}
+{"duration":16,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rs","timestamp":"2026-10-27 17:57:12"}
+{"error":"invalid input syntax for type integer: \"keycloak:srinagaraj.p@simplify3x.com\"","level":"error","message":"Database query error","service":"hrobit-backend","text":"\n      SELECT id, title, detail, type, read, time, created_at\n      FROM hcm.notifications\n      WHERE employee_id = $1 OR employee_id IS NULL\n      ORDER BY id DESC\n    ","timestamp":"2026-10-27 17:57:12"}
+{"level":"error","message":"Unhandled API Error: invalid input syntax for type integer: \"keycloak:srinagaraj.p@simplify3x.com\"","path":"/api/notifications","service":"hrobit-backend","stack":"error: invalid input syntax for type integer: \"keycloak:srinagaraj.p@simplify3x.com\"\n    at C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\pg-pool\\index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async query (C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\src\\config\\db.js:32:19)\n    at async exports.getAllNotifications (C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\src\\controllers\\notificationController.js:5:20)","timestamp":"2026-10-27 17:57:12"}
+{"duration":17,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/courses","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"duration":5,"level":"debug","message":"Executed query","rows":10,"service":"hrobit-backend","text":"\n      SELECT DISTINCT ON (LOWER(TRIM(holiday_name)), start_date::date)\n             id, holiday_nam","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/faqs","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/games","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"duration":5,"level":"debug","message":"Executed query","rows":8,"service":"hrobit-backend","text":"\n      SELECT id, title, provider, category, level, duration, access, certificate, description, url,","timestamp":"2026-10-27 17:57:12"}
+{"duration":3,"level":"debug","message":"Executed query","rows":6,"service":"hrobit-backend","text":"\n      SELECT id, category, question, answer\n      FROM hcm.faqs\n      ORDER BY id ASC\n    ","timestamp":"2026-10-27 17:57:12"}
+{"duration":4,"level":"debug","message":"Executed query","rows":11,"service":"hrobit-backend","text":"\n      SELECT id, title, subtitle, difficulty, description, icon, color, available\n      FROM hcm.ga","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/employees","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"level":"debug","message":"GET /api/celebrations","service":"hrobit-backend","timestamp":"2026-10-27 17:57:12"}
+{"level":"info","message":"Initializing database tables in schema hcm...","service":"hrobit-backend","timestamp":"2026-10-27 18:21:26"}
+{"level":"info","message":"Connected to Redis server","service":"hrobit-backend","timestamp":"2026-10-27 18:21:26"}
+{"level":"info","message":"Database initialization & seeding completed successfully.","service":"hrobit-backend","timestamp":"2026-10-27 18:21:26"}
+{"level":"info","message":"Server successfully started on port 3000 [development]","service":"hrobit-backend","timestamp":"2026-10-27 18:21:26"}
+{"level":"info","message":"API Base URL: http://localhost:3000/api","service":"hrobit-backend","timestamp":"2026-10-27 18:21:26"}
