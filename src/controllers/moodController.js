@@ -3,6 +3,8 @@ const { query } = require('../config/db');
 const MOODS = new Set(['amazing', 'happy', 'calm', 'okay', 'sad', 'stressed']);
 const VISIBILITIES = new Set(['private', 'colleagues', 'selected']);
 const REACTIONS = new Set(['🎉', '👏', '❤️', '✨', '🥳']);
+const MOOD_TIMEZONE = process.env.MOOD_TIMEZONE || process.env.APP_TIMEZONE || 'Asia/Kolkata';
+
 const SUPPORT_MESSAGES = new Set([
   "You've got this! One step at a time 💛",
   'Just a reminder that you\'re valued and appreciated 🌻',
@@ -53,7 +55,7 @@ function moodResponse(row, reactions = []) {
     id: String(row.id),
     mood: row.mood,
     visibility: row.visibility,
-    sharedAt: row.created_at,
+    sharedAt: row.submitted_at || row.created_at,
     employee: publicEmployee(row, identityAllowed),
     isPositive: ['amazing', 'happy'].includes(row.mood),
     isSupport: ['sad', 'stressed'].includes(row.mood),
@@ -61,20 +63,42 @@ function moodResponse(row, reactions = []) {
   };
 }
 
+function calendarMetadata(row) {
+  if (!row?.submitted_at) return { locked: false, submittedAt: null, checkinDate: null, lockedUntil: null, nextEligibleAt: null };
+  const locked = row.checkin_date === row.current_local_date;
+  const submittedAt = new Date(row.submitted_at);
+  const nextEligibleAt = row.next_eligible_at ? new Date(row.next_eligible_at) : null;
+  return {
+    locked,
+    submittedAt: submittedAt.toISOString(),
+    checkinDate: row.checkin_date,
+    lockedUntil: nextEligibleAt?.toISOString() || null,
+    nextEligibleAt: nextEligibleAt?.toISOString() || null,
+  };
+}
+
+function moodState(row, selectedEmployeeIds = []) {
+  return { mood: row || null, selectedEmployeeIds, ...calendarMetadata(row) };
+}
+
 exports.getMoodState = async (req, res, next) => {
   try {
     const id = employeeId(req);
     if (!id) return res.status(403).json({ success: false, message: 'A local employee identity is required.' });
     const own = await query(`
-      SELECT m.id, m.mood, m.visibility, m.created_at
+      SELECT m.id, m.mood, m.visibility, m.submitted_at, m.checkin_date,
+             ((CURRENT_TIMESTAMP AT TIME ZONE $2)::date) AS current_local_date,
+             (((m.checkin_date + 1)::date) AT TIME ZONE $2) AS next_eligible_at
       FROM hcm.mood_checkins m
-      WHERE m.employee_id = $1 AND m.checkin_date = CURRENT_DATE
+      WHERE m.employee_id = $1
+      ORDER BY m.checkin_date DESC, m.submitted_at DESC NULLS LAST, m.id DESC
       LIMIT 1
-    `, [id]);
-    const recipients = own.rows[0]?.visibility === 'selected'
-      ? await query('SELECT employee_id FROM hcm.mood_checkin_recipients WHERE mood_checkin_id = $1', [own.rows[0].id])
+    `, [id, MOOD_TIMEZONE]);
+    const row = own.rows[0] || null;
+    const recipients = row?.visibility === 'selected'
+      ? await query('SELECT employee_id FROM hcm.mood_checkin_recipients WHERE mood_checkin_id = $1', [row.id])
       : { rows: [] };
-    res.json({ success: true, data: { mood: own.rows[0] || null, selectedEmployeeIds: recipients.rows.map((row) => String(row.employee_id)) } });
+    res.json({ success: true, data: moodState(row, recipients.rows.map((item) => String(item.employee_id))) });
   } catch (err) { next(err); }
 };
 
@@ -90,20 +114,51 @@ exports.saveMood = async (req, res, next) => {
     if (visibility === 'selected' && selectedIds.length === 0) return res.status(400).json({ success: false, message: 'Choose at least one colleague or keep this mood private.' });
     if (selectedIds.includes(id)) return res.status(400).json({ success: false, message: 'You cannot select yourself as a recipient.' });
     await client.query('BEGIN');
-    const saved = await client.query(`
-      INSERT INTO hcm.mood_checkins (employee_id, mood, visibility, checkin_date)
-      VALUES ($1, $2, $3, CURRENT_DATE)
-      ON CONFLICT (employee_id, checkin_date) DO UPDATE SET mood = EXCLUDED.mood, visibility = EXCLUDED.visibility, updated_at = CURRENT_TIMESTAMP
-      RETURNING id, mood, visibility, created_at
-    `, [id, mood, visibility]);
-    await client.query('DELETE FROM hcm.mood_checkin_recipients WHERE mood_checkin_id = $1', [saved.rows[0].id]);
+    await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`mood-checkin:${id}`]);
+    const current = await client.query(`
+      SELECT id, mood, visibility, submitted_at, checkin_date,
+             ((CURRENT_TIMESTAMP AT TIME ZONE $2)::date) AS current_local_date,
+             (((checkin_date + 1)::date) AT TIME ZONE $2) AS next_eligible_at
+      FROM hcm.mood_checkins
+      WHERE employee_id = $1
+      ORDER BY checkin_date DESC, submitted_at DESC NULLS LAST, id DESC
+      LIMIT 1 FOR UPDATE
+    `, [id, MOOD_TIMEZONE]);
+    const currentRow = current.rows[0];
+    const currentLock = calendarMetadata(currentRow);
+    if (currentLock.locked) {
+      const currentRecipients = currentRow.visibility === 'selected'
+        ? await client.query('SELECT employee_id FROM hcm.mood_checkin_recipients WHERE mood_checkin_id = $1', [currentRow.id])
+        : { rows: [] };
+      await client.query('ROLLBACK');
+      return res.status(409).json({
+        success: false,
+        message: `You have already checked in today. You can check in again after the next calendar day begins.`,
+        data: moodState(currentRow, currentRecipients.rows.map((item) => String(item.employee_id))),
+      });
+    }
     if (visibility === 'selected') {
       const valid = await client.query(`SELECT id FROM hcm.employees WHERE id = ANY($1::int[]) AND is_active = true AND is_deleted = false`, [selectedIds]);
       if (valid.rowCount !== selectedIds.length) throw Object.assign(new Error('One or more selected colleagues are unavailable.'), { statusCode: 400 });
-      for (const recipientId of selectedIds) await client.query('INSERT INTO hcm.mood_checkin_recipients (mood_checkin_id, employee_id) VALUES ($1, $2)', [saved.rows[0].id, recipientId]);
     }
+    const saved = await client.query(`
+      INSERT INTO hcm.mood_checkins (employee_id, mood, visibility, checkin_date, submitted_at, locked_until, updated_at)
+      VALUES ($1, $2, $3, (CURRENT_TIMESTAMP AT TIME ZONE $4)::date, CURRENT_TIMESTAMP, (((CURRENT_TIMESTAMP AT TIME ZONE $4)::date + 1) AT TIME ZONE $4), CURRENT_TIMESTAMP)
+      ON CONFLICT (employee_id, checkin_date) DO UPDATE SET mood = EXCLUDED.mood, visibility = EXCLUDED.visibility, submitted_at = EXCLUDED.submitted_at, locked_until = EXCLUDED.locked_until, updated_at = EXCLUDED.updated_at
+      RETURNING id, mood, visibility, submitted_at, checkin_date,
+                ((CURRENT_TIMESTAMP AT TIME ZONE $4)::date) AS current_local_date,
+                (((checkin_date + 1)::date) AT TIME ZONE $4) AS next_eligible_at,
+                (((checkin_date + 1)::date) AT TIME ZONE $4) AS locked_until
+    `, [id, mood, visibility, MOOD_TIMEZONE]);
+    const savedRow = saved.rows[0];
+    savedRow.current_local_date = savedRow.checkin_date;
+    await client.query('DELETE FROM hcm.mood_checkin_recipients WHERE mood_checkin_id = $1', [savedRow.id]);
+    if (visibility === 'selected') {
+      for (const recipientId of selectedIds) await client.query('INSERT INTO hcm.mood_checkin_recipients (mood_checkin_id, employee_id) VALUES ($1, $2)', [savedRow.id, recipientId]);
+    }
+    await client.query('INSERT INTO hcm.mood_checkin_history (mood_checkin_id, employee_id, mood, visibility, selected_employee_ids, submitted_at, locked_until) VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7)', [savedRow.id, id, mood, visibility, JSON.stringify(selectedIds), savedRow.submitted_at, savedRow.locked_until]);
     await client.query('COMMIT');
-    res.json({ success: true, data: { mood: saved.rows[0], selectedEmployeeIds: selectedIds.map(String) } });
+    res.json({ success: true, data: moodState(savedRow, selectedIds.map(String)) });
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
     next(err);
@@ -125,8 +180,8 @@ exports.getTeamMoods = async (req, res, next) => {
         AND (m.employee_id = $1 OR m.visibility = 'colleagues' OR EXISTS (
           SELECT 1 FROM hcm.mood_checkin_recipients r WHERE r.mood_checkin_id = m.id AND r.employee_id = $1
         ))
-        AND m.checkin_date >= CURRENT_DATE - INTERVAL '7 days'
-      ORDER BY m.created_at DESC LIMIT 100
+        AND m.submitted_at >= CURRENT_TIMESTAMP - INTERVAL '7 days'
+      ORDER BY m.submitted_at DESC LIMIT 100
     `, [id]);
     const reactions = await query(`SELECT mood_checkin_id, reaction, COUNT(*)::int AS count FROM hcm.mood_reactions GROUP BY mood_checkin_id, reaction`);
     const grouped = reactions.rows.reduce((all, row) => ({ ...all, [row.mood_checkin_id]: [...(all[row.mood_checkin_id] || []), { reaction: row.reaction, count: row.count }] }), {});

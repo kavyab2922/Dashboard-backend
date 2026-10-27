@@ -157,7 +157,26 @@ async function initDb() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE (employee_id, checkin_date)
       );
+      ALTER TABLE hcm.mood_checkins ADD COLUMN IF NOT EXISTS submitted_at TIMESTAMPTZ;
+      ALTER TABLE hcm.mood_checkins ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ;
+      UPDATE hcm.mood_checkins
+      SET submitted_at = COALESCE(submitted_at, created_at AT TIME ZONE 'UTC'),
+          locked_until = COALESCE(locked_until, (COALESCE(submitted_at, created_at AT TIME ZONE 'UTC') + INTERVAL '24 hours'))
+      WHERE submitted_at IS NULL OR locked_until IS NULL;
+      CREATE INDEX IF NOT EXISTS mood_checkins_employee_submitted_idx ON hcm.mood_checkins (employee_id, submitted_at DESC);
       CREATE INDEX IF NOT EXISTS mood_checkins_visibility_date_idx ON hcm.mood_checkins (visibility, checkin_date);
+      CREATE TABLE IF NOT EXISTS hcm.mood_checkin_history (
+        id BIGSERIAL PRIMARY KEY,
+        mood_checkin_id INTEGER,
+        employee_id INTEGER NOT NULL,
+        mood VARCHAR(20) NOT NULL CHECK (mood IN ('amazing', 'happy', 'calm', 'okay', 'sad', 'stressed')),
+        visibility VARCHAR(20) NOT NULL CHECK (visibility IN ('private', 'colleagues', 'selected')),
+        selected_employee_ids JSONB NOT NULL DEFAULT '[]'::jsonb,
+        submitted_at TIMESTAMPTZ NOT NULL,
+        locked_until TIMESTAMPTZ NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS mood_checkin_history_employee_submitted_idx ON hcm.mood_checkin_history (employee_id, submitted_at DESC);
       CREATE TABLE IF NOT EXISTS hcm.mood_checkin_recipients (
         mood_checkin_id INTEGER NOT NULL REFERENCES hcm.mood_checkins(id) ON DELETE CASCADE,
         employee_id INTEGER NOT NULL,
