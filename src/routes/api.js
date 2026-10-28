@@ -85,6 +85,17 @@ router.get('/faqs', authenticate, faqController.getAllFaqs);
 
 // Games
 router.get('/games', authenticate, gameController.getAllGames);
+router.get('/daily-games', authenticate, gameController.listDailyGames);
+router.get('/daily-games/me/stats', authenticate, gameController.getStats);
+router.get('/daily-games/:gameId/puzzle', authenticate, gameController.getPuzzle);
+router.post('/daily-games/:gameId/sessions', authenticate, gameController.startGame);
+router.post('/daily-games/:gameId/check', authenticate, gameController.checkSolution);
+router.post('/daily-games/:gameId/hint', authenticate, gameController.useHint);
+router.post('/daily-games/:gameId/complete', authenticate, gameController.completeGame);
+router.get('/daily-games/leaderboard', authenticate, gameController.getLeaderboard);
+router.get('/daily-games/champions', authenticate, gameController.getChampions);
+router.get('/daily-games/celebrations', authenticate, gameController.getCelebrations);
+router.post('/daily-games/celebrations/ack', authenticate, gameController.acknowledgeCelebration);
 
 // Dashboard Summary
 router.get('/dashboard/summary', authenticate, dashboardController.getDashboardSummary);
