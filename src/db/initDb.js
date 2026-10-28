@@ -7,6 +7,7 @@ async function initDb() {
   try {
     logger.info('Initializing database tables in schema hcm...');
     await client.query('CREATE SCHEMA IF NOT EXISTS hcm;');
+    await client.query('CREATE EXTENSION IF NOT EXISTS pgcrypto;');
 
     // 1. Announcements table
     await client.query(`
@@ -131,6 +132,142 @@ async function initDb() {
         color VARCHAR(50),
         available BOOLEAN DEFAULT true
       );
+      ALTER TABLE hcm.games ADD COLUMN IF NOT EXISTS minutes INTEGER NOT NULL DEFAULT 5;
+      ALTER TABLE hcm.games ADD COLUMN IF NOT EXISTS max_points INTEGER NOT NULL DEFAULT 100;
+      ALTER TABLE hcm.games ADD COLUMN IF NOT EXISTS rules JSONB NOT NULL DEFAULT '[]'::jsonb;
+      ALTER TABLE hcm.games ADD COLUMN IF NOT EXISTS scoring JSONB NOT NULL DEFAULT '[]'::jsonb;
+
+      -- Older deployments used a different Daily Games schema. Preserve those
+      -- tables under legacy names so the current API can create its contract.
+      DO $$
+      BEGIN
+        IF to_regclass('hcm.daily_game_sessions') IS NOT NULL
+           AND NOT EXISTS (
+             SELECT 1 FROM information_schema.columns
+             WHERE table_schema = 'hcm' AND table_name = 'daily_game_sessions' AND column_name = 'employee_id'
+           ) THEN
+          ALTER TABLE hcm.daily_game_sessions RENAME TO daily_game_sessions_legacy;
+        END IF;
+        IF to_regclass('hcm.daily_game_completions') IS NOT NULL
+           AND NOT EXISTS (
+             SELECT 1 FROM information_schema.columns
+             WHERE table_schema = 'hcm' AND table_name = 'daily_game_completions' AND column_name = 'employee_id'
+           ) THEN
+          ALTER TABLE hcm.daily_game_completions RENAME TO daily_game_completions_legacy;
+        END IF;
+      END $$;
+
+      CREATE TABLE IF NOT EXISTS hcm.daily_puzzles (
+        puzzle_date DATE NOT NULL,
+        game_id VARCHAR(100) NOT NULL REFERENCES hcm.games(id) ON DELETE CASCADE,
+        puzzle JSONB NOT NULL,
+        solution JSONB NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (puzzle_date, game_id)
+      );
+      CREATE TABLE IF NOT EXISTS hcm.daily_game_sessions (
+        employee_id INTEGER NOT NULL,
+        puzzle_date DATE NOT NULL,
+        game_id VARCHAR(100) NOT NULL,
+        hints_used INTEGER NOT NULL DEFAULT 0,
+        status VARCHAR(24) NOT NULL DEFAULT 'in_progress' CHECK (status IN ('in_progress', 'failed_validation', 'completed')),
+        started_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (employee_id, puzzle_date, game_id),
+        FOREIGN KEY (puzzle_date, game_id) REFERENCES hcm.daily_puzzles(puzzle_date, game_id) ON DELETE CASCADE
+      );
+      ALTER TABLE hcm.daily_game_sessions ADD COLUMN IF NOT EXISTS status VARCHAR(24) NOT NULL DEFAULT 'in_progress';
+      CREATE TABLE IF NOT EXISTS hcm.daily_game_completions (
+        id BIGSERIAL PRIMARY KEY,
+        employee_id INTEGER NOT NULL,
+        puzzle_date DATE NOT NULL,
+        game_id VARCHAR(100) NOT NULL,
+        points INTEGER NOT NULL CHECK (points >= 0),
+        completion_ms INTEGER NOT NULL DEFAULT 0,
+        hints_used INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (employee_id, puzzle_date, game_id),
+        FOREIGN KEY (puzzle_date, game_id) REFERENCES hcm.daily_puzzles(puzzle_date, game_id) ON DELETE CASCADE
+      );
+      CREATE TABLE IF NOT EXISTS hcm.daily_game_reward_ledger (
+        employee_id INTEGER NOT NULL,
+        puzzle_date DATE NOT NULL,
+        game_id VARCHAR(100) NOT NULL,
+        points INTEGER NOT NULL CHECK (points >= 0),
+        reason TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (employee_id, puzzle_date, game_id)
+      );
+      CREATE TABLE IF NOT EXISTS hcm.daily_game_streaks (
+        employee_id INTEGER PRIMARY KEY,
+        current_streak INTEGER NOT NULL DEFAULT 0,
+        longest_streak INTEGER NOT NULL DEFAULT 0,
+        last_completed_date DATE,
+        total_points INTEGER NOT NULL DEFAULT 0,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE TABLE IF NOT EXISTS hcm.daily_game_streak_awards (
+        employee_id INTEGER NOT NULL,
+        award_date DATE NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (employee_id, award_date)
+      );
+      CREATE INDEX IF NOT EXISTS daily_game_streak_awards_date_idx ON hcm.daily_game_streak_awards (award_date);
+      CREATE INDEX IF NOT EXISTS daily_game_completions_date_idx ON hcm.daily_game_completions (puzzle_date, created_at DESC);
+
+      -- Level-scoped Daily Games storage. The original daily tables remain intact
+      -- for backwards compatibility with already-completed daily challenges.
+      CREATE TABLE IF NOT EXISTS hcm.daily_game_variants (
+        puzzle_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        game_id VARCHAR(100) NOT NULL REFERENCES hcm.games(id) ON DELETE CASCADE,
+        difficulty VARCHAR(16) NOT NULL CHECK (difficulty IN ('easy', 'medium', 'hard', 'expert', 'master')),
+        level_number INTEGER NOT NULL CHECK (level_number > 0),
+        puzzle JSONB NOT NULL,
+        solution JSONB NOT NULL,
+        seed TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (game_id, difficulty, level_number)
+      );
+      CREATE TABLE IF NOT EXISTS hcm.daily_game_variant_sessions (
+        employee_id INTEGER NOT NULL,
+        puzzle_id UUID NOT NULL REFERENCES hcm.daily_game_variants(puzzle_id) ON DELETE CASCADE,
+        hints_used INTEGER NOT NULL DEFAULT 0 CHECK (hints_used >= 0 AND hints_used <= 5),
+        status VARCHAR(24) NOT NULL DEFAULT 'in_progress' CHECK (status IN ('in_progress', 'failed_validation', 'completed')),
+        started_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (employee_id, puzzle_id)
+      );
+      CREATE TABLE IF NOT EXISTS hcm.daily_game_variant_completions (
+        id BIGSERIAL PRIMARY KEY,
+        employee_id INTEGER NOT NULL,
+        puzzle_id UUID NOT NULL REFERENCES hcm.daily_game_variants(puzzle_id) ON DELETE CASCADE,
+        points INTEGER NOT NULL CHECK (points >= 0),
+        completion_ms INTEGER NOT NULL DEFAULT 0,
+        hints_used INTEGER NOT NULL DEFAULT 0,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (employee_id, puzzle_id)
+      );
+      CREATE TABLE IF NOT EXISTS hcm.daily_game_progress (
+        employee_id INTEGER NOT NULL,
+        game_id VARCHAR(100) NOT NULL REFERENCES hcm.games(id) ON DELETE CASCADE,
+        difficulty VARCHAR(16) NOT NULL CHECK (difficulty IN ('easy', 'medium', 'hard', 'expert', 'master')),
+        current_level INTEGER NOT NULL DEFAULT 1 CHECK (current_level > 0),
+        highest_level INTEGER NOT NULL DEFAULT 0,
+        total_completed INTEGER NOT NULL DEFAULT 0,
+        total_points INTEGER NOT NULL DEFAULT 0,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (employee_id, game_id, difficulty)
+      );
+      CREATE INDEX IF NOT EXISTS daily_game_variants_lookup_idx ON hcm.daily_game_variants (game_id, difficulty, level_number);
+      CREATE TABLE IF NOT EXISTS hcm.daily_game_variant_reward_ledger (
+        employee_id INTEGER NOT NULL,
+        puzzle_id UUID NOT NULL REFERENCES hcm.daily_game_variants(puzzle_id) ON DELETE CASCADE,
+        points INTEGER NOT NULL CHECK (points >= 0),
+        reason TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (employee_id, puzzle_id)
+      );
+
     `);
 
     // 9. User profile overrides & preferences table
@@ -356,6 +493,22 @@ async function initDb() {
       SELECT 'quick-puzzle', 'Quick Puzzle', 'Solve the missing number', 'Easy',
              'Find the number that completes each short pattern.', 'Sparkles', 'gold', true
       WHERE NOT EXISTS (SELECT 1 FROM hcm.games WHERE id = 'quick-puzzle');
+    `);
+
+    await client.query(`
+      UPDATE hcm.games
+      SET available = false
+      WHERE id IN ('queens', 'pinpoint', 'crossclimb', 'zip', 'tango', 'mini-sudoku', 'wend', 'patches', 'word-connections', 'orbit-grid', 'quick-puzzle');
+
+      INSERT INTO hcm.games (id, title, subtitle, difficulty, description, icon, color, available, minutes, max_points, rules, scoring)
+      VALUES
+        ('sudoku', 'Mini Sudoku', 'Clear the grid', 'Hard', 'Complete a valid Sudoku grid using clues from a trusted puzzle source.', 'Grid2X2', 'purple', true, 10, 120, '["Use each number once in every row, column, and box.", "Given clues cannot be changed."]'::jsonb, '["Complete the validated grid for up to 120 points."]'::jsonb),
+        ('quiz', 'Quiz Challenge', 'Fast facts, fresh questions', 'Medium', 'Answer multiple-choice questions from Open Trivia DB before the timer runs out.', 'HelpCircle', 'blue', true, 8, 100, '["Answer every question.", "Only a validated submission earns points."]'::jsonb, '["Difficulty changes the round length and multiplier."]'::jsonb),
+        ('word', 'Word Quest', 'Find the perfect word', 'Easy', 'Choose the word that best fits a game-themed clue from a live word bank.', 'Type', 'pink', true, 5, 90, '["Read the clue carefully.", "Select one valid candidate."]'::jsonb, '["Harder rounds offer more candidates and a higher multiplier."]'::jsonb),
+        ('trivia', 'Trivia Challenge', 'A world of questions', 'Hard', 'Take on a fresh trivia round with real questions and instant answer feedback.', 'Lightbulb', 'gold', true, 9, 110, '["Answer every question.", "Answers are checked on the server."]'::jsonb, '["Difficulty changes the round length and multiplier."]'::jsonb)
+      ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, subtitle = EXCLUDED.subtitle, difficulty = EXCLUDED.difficulty,
+        description = EXCLUDED.description, icon = EXCLUDED.icon, color = EXCLUDED.color, available = EXCLUDED.available,
+        minutes = EXCLUDED.minutes, max_points = EXCLUDED.max_points, rules = EXCLUDED.rules, scoring = EXCLUDED.scoring;
     `);
 
     logger.info('Database initialization & seeding completed successfully.');

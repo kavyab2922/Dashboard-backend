@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "init-db": "node src/db/initDb.js"
+    "init-db": "node src/db/initDb.js",
+    "test": "node --test src/controllers/gameController.test.js src/controllers/gameStreak.test.js"
   },
   "keywords": [],
   "author": "",
