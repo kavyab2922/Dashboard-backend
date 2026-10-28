@@ -1,6 +1,6 @@
 const multer = require('multer');
 
-const maxFileSize = parseInt(process.env.MAX_FILE_SIZE || '5242880', 10);
+const maxFileSize = parseInt(process.env.MAX_FILE_SIZE || String(7 * 1024 * 1024), 10);
 const allowedImageTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 const upload = multer({

@@ -51,6 +51,10 @@ function joiningDate(user) {
   return null;
 }
 
+function isGrantedHrAdmin(identity) {
+  return String(identity || '').trim().toLowerCase() === 'srinagaraj.p@simplify3x.com';
+}
+
 function profileFields(user) {
   const rawRole = [user?.role, user?.userRole, user?.profile, user?.title].find((value) => typeof value === 'string' && value.trim());
   const roleParts = rawRole?.split(/\s*[·|]\s*/).map((part) => part.trim()).filter(Boolean) || [];
@@ -162,6 +166,8 @@ exports.login = async (req, res, next) => {
     }
 
     const hrorbitProfile = profileFields(hrorbitUser);
+    const remoteEmployeeCode = hrorbitUser?.employee_code || hrorbitUser?.employeeCode || hrorbitUser?.employee_id || hrorbitUser?.employeeId || hrorbitUser?.staffId || null;
+    const isGrantedAdmin = isGrantedHrAdmin(userIdentifier);
     const isSrinagaraj = userIdentifier.includes('srinagaraj.p@simplify3x.com') || userIdentifier.includes('srinagaraj');
     const resolvedEmploymentType = isSrinagaraj ? 'Intern' : (hrorbitProfile.employmentType || 'Employee');
     const resolvedJobTitle = isSrinagaraj ? 'Software Engineer (Intern)' : (hrorbitProfile.jobTitle || 'Employee');
@@ -226,7 +232,8 @@ exports.login = async (req, res, next) => {
         joined: dateOnly(row.join_date) || joiningDate(row.employee_data) || joiningDate(hrorbitUser) || joiningDate(hrorbitPayload),
         employmentType: resolvedEmploymentType,
         employmentStatus: hrorbitUser?.employmentStatus || hrorbitUser?.employment_status || hrorbitUser?.employeeStatus || hrorbitUser?.employee_status || hrorbitUser?.status || null,
-        role: row.official_email?.includes('hr') || row.department_name?.toLowerCase().includes('hr') ? 'HR Admin' : 'Employee',
+        role: isGrantedAdmin ? 'HR Admin' : 'Employee',
+        access_role: isGrantedAdmin ? 'HR Admin' : 'Employee',
       };
     } else if (hrorbitAuthOk) {
       // HROrbit/Keycloak can authenticate an employee before the local profile
@@ -236,11 +243,12 @@ exports.login = async (req, res, next) => {
         : userIdentifier;
       user = {
         id: `keycloak:${userIdentifier}`,
-        employee_code: userIdentifier,
+        employee_code: remoteEmployeeCode || userIdentifier,
         name: name.replace(/\b\w/g, (letter) => letter.toUpperCase()),
         email: userIdentifier,
         official_email: userIdentifier.includes('@') ? userIdentifier : null,
-        role: 'Employee',
+        role: isGrantedAdmin ? 'HR Admin' : 'Employee',
+        access_role: isGrantedAdmin ? 'HR Admin' : 'Employee',
         department: hrorbitUser?.department || hrorbitUser?.departmentName || hrorbitUser?.department_name || 'General',
         designation: resolvedJobTitle,
         jobTitle: resolvedJobTitle,
@@ -272,12 +280,12 @@ exports.login = async (req, res, next) => {
 
 exports.getMe = async (req, res, next) => {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
+    const userId = req.user?.id || req.user?.employee_id || req.user?.employeeId || null;
+    const identity = String(req.user?.email || req.user?.official_email || req.user?.employee_code || req.user?.employeeCode || req.user?.name || userId || '').trim().toLowerCase();
+    if (!userId && !identity) {
       return res.status(401).json({ success: false, message: 'Authenticated employee is missing' });
     }
-
-    const identity = String(req.user?.email || req.user?.official_email || req.user?.name || userId).trim().toLowerCase();
+    const isGrantedAdmin = isGrantedHrAdmin(identity);
     const isSyntheticUser = String(userId).startsWith('keycloak:');
     const result = await query(
       `SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,
@@ -308,7 +316,7 @@ exports.getMe = async (req, res, next) => {
         success: true,
         user: {
           id: req.user?.id,
-          employee_code: req.user?.employee_code,
+          employee_code: req.user?.employee_code || req.user?.employeeCode || req.user?.employee_id || req.user?.employeeId,
           name: req.user?.name,
           first_name: req.user?.first_name,
           last_name: req.user?.last_name,
@@ -317,7 +325,8 @@ exports.getMe = async (req, res, next) => {
           dob: birthDate(req.user) || (isSrinagaraj ? '2006-03-13' : null),
           birthday: birthDate(req.user) || (isSrinagaraj ? '2006-03-13' : null),
           joined: req.user?.joined || req.user?.join_date || req.user?.joiningDate || joiningDate(req.user) || null,
-          role: 'Employee',
+          role: isGrantedAdmin ? 'HR Admin' : 'Employee',
+          access_role: isGrantedAdmin ? 'HR Admin' : 'Employee',
           employmentType: isSrinagaraj ? 'Intern' : (profile.employmentType || 'Employee'),
           jobTitle: isSrinagaraj ? 'Software Engineer (Intern)' : (profile.jobTitle || 'Employee'),
           designation: isSrinagaraj ? 'Software Engineer (Intern)' : (profile.jobTitle || 'Employee'),
@@ -344,7 +353,8 @@ exports.getMe = async (req, res, next) => {
       dob: dateOnly(row.dob) || birthDate(row.employee_data) || birthDate(req.user) || (isSrinagaraj ? '2006-03-13' : null),
       birthday: dateOnly(row.dob) || birthDate(row.employee_data) || birthDate(req.user) || (isSrinagaraj ? '2006-03-13' : null),
       joined: dateOnly(row.join_date) || joiningDate(row.employee_data) || req.user?.joined || req.user?.join_date || req.user?.joiningDate || req.user?.joining_date || joiningDate(req.user) || null,
-      role: 'Employee',
+      role: isGrantedAdmin ? 'HR Admin' : 'Employee',
+      access_role: isGrantedAdmin ? 'HR Admin' : 'Employee',
       jobTitle: isSrinagaraj ? 'Software Engineer (Intern)' : (req.user?.jobTitle || req.user?.job_title || req.user?.designation || req.user?.designationName || req.user?.designation_name || row.custom_role || row.designation_name || 'Employee'),
       designation: isSrinagaraj ? 'Software Engineer (Intern)' : (req.user?.designation || req.user?.designationName || req.user?.designation_name || row.designation_name || null),
       employmentType: isSrinagaraj ? 'Intern' : (req.user?.employmentType || req.user?.employment_type || req.user?.employeeType || req.user?.employee_type || req.user?.workerType || req.user?.worker_type || 'Employee'),

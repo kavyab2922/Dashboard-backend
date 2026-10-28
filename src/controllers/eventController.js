@@ -3,7 +3,7 @@ const { query } = require('../config/db');
 exports.getAllEvents = async (req, res, next) => {
   try {
     const customEventsRes = await query(`
-      SELECT id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rsvp, color, image
+      SELECT id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rsvp, color, image, COALESCE(hosts, '[]'::jsonb) AS hosts
       FROM hcm.events
       ORDER BY date ASC, id ASC
     `);
@@ -44,16 +44,17 @@ exports.getAllEvents = async (req, res, next) => {
 
 exports.createEvent = async (req, res, next) => {
   try {
-    const { title, description, date, time, venue, category, rsvp, color, image } = req.body;
-    if (!title || !description || !date) {
-      return res.status(400).json({ success: false, message: 'Title, description and date are required' });
+    const { title, description, date, time, venue, category, rsvp, color, image, hosts } = req.body;
+    const requiresHost = category !== 'Holiday';
+    if (!title || !description || !date || !time || !venue || !Array.isArray(hosts) || (requiresHost && hosts.length === 0)) {
+      return res.status(400).json({ success: false, message: requiresHost ? 'Title, description, date, time, venue and at least one host are required' : 'Title, description, date and venue are required' });
     }
 
     const result = await query(`
-      INSERT INTO hcm.events (title, description, date, time, venue, category, rsvp, color, image)
-      VALUES ($1, $2, $3::date, COALESCE($4, '12:00 PM'), $5, COALESCE($6, 'Community'), $7, COALESCE($8, 'mint'), $9)
-      RETURNING id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rsvp, color, image
-    `, [title, description, date, time, venue || '', category, rsvp || '', color, image || null]);
+      INSERT INTO hcm.events (title, description, date, time, venue, category, rsvp, color, image, hosts)
+      VALUES ($1, $2, $3::date, COALESCE($4, '12:00 PM'), $5, COALESCE($6, 'Community'), $7, COALESCE($8, 'mint'), $9, COALESCE($10::jsonb, '[]'::jsonb))
+      RETURNING id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rsvp, color, image, COALESCE(hosts, '[]'::jsonb) AS hosts
+    `, [title, description, date, time, venue || '', category, rsvp || '', color, image || null, JSON.stringify(Array.isArray(hosts) ? hosts : [])]);
 
     const row = result.rows[0];
     res.status(201).json({ success: true, data: { ...row, id: String(row.id) } });
@@ -65,7 +66,14 @@ exports.createEvent = async (req, res, next) => {
 exports.updateEvent = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { title, description, date, time, venue, category, rsvp, color, image } = req.body;
+    const { title, description, date, time, venue, category, rsvp, color, image, hosts } = req.body;
+    const requiresHost = category !== 'Holiday';
+    if (hosts !== undefined && (!Array.isArray(hosts) || (requiresHost && hosts.length === 0))) {
+      return res.status(400).json({ success: false, message: requiresHost ? 'At least one host is required' : 'Hosts are optional for Holiday events' });
+    }
+    if (title === '' || description === '' || date === '' || time === '' || venue === '') {
+      return res.status(400).json({ success: false, message: 'Title, description, date, time and venue cannot be empty' });
+    }
 
     const result = await query(`
       UPDATE hcm.events
@@ -79,10 +87,11 @@ exports.updateEvent = async (req, res, next) => {
         rsvp = COALESCE($7, rsvp),
         color = COALESCE($8, color),
         image = COALESCE($9, image),
+        hosts = COALESCE($10::jsonb, hosts),
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $10
-      RETURNING id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rsvp, color, image
-    `, [title, description, date, time, venue, category, rsvp, color, image, id]);
+      WHERE id = $11
+      RETURNING id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rsvp, color, image, COALESCE(hosts, '[]'::jsonb) AS hosts
+    `, [title, description, date, time, venue, category, rsvp, color, image, hosts === undefined ? null : JSON.stringify(Array.isArray(hosts) ? hosts : []), id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Event not found' });

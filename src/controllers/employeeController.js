@@ -147,12 +147,18 @@ exports.getCelebrations = async (req, res, next) => {
 exports.getHRContacts = async (req, res, next) => {
   try {
     const result = await query(`
-      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.phone,
-             d.department_name, des.designation_name, e.profile_picture_url
+      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email, e.phone,
+             e.profile_picture_url, e.employee_type,
+             d.department_name, des.designation_name
       FROM hcm.employees e
       LEFT JOIN hcm.departments d ON e.department_id = d.id
       LEFT JOIN hcm.designations des ON e.designation_id = des.id
-      WHERE e.is_active = true AND COALESCE(e.is_deleted, false) = false
+      WHERE COALESCE(e.is_deleted, false) = false
+        AND (
+          e.is_active = true
+          OR LOWER(COALESCE(e.employee_type, '')) IN ('intern', 'internship')
+          OR LOWER(COALESCE(des.designation_name, '')) LIKE '%intern%'
+        )
       ORDER BY e.first_name, e.last_name
     `);
 
@@ -173,9 +179,10 @@ exports.getHRContacts = async (req, res, next) => {
         db_id: row.id,
         name,
         team: row.department_name || 'People & Culture',
-        role: row.designation_name || 'HR Specialist',
+        role: row.designation_name || row.employee_type || 'HR Specialist',
+        employmentType: row.employee_type || null,
         focus,
-        email: row.official_email || `${row.employee_code?.toLowerCase() || 'hr'}@simplify3x.com`,
+        email: row.official_email || row.personal_email || (row.employee_code ? `${row.employee_code.toLowerCase()}@simplify3x.com` : null),
         phone: row.phone || '+91 80 4000 1200',
         extension: `Ext. ${4000 + (idx * 17) % 900}`,
         location: 'Bengaluru',

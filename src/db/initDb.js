@@ -39,10 +39,12 @@ async function initDb() {
         rsvp TEXT,
         color VARCHAR(50) DEFAULT 'mint',
         image TEXT,
+        hosts JSONB NOT NULL DEFAULT '[]'::jsonb,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+    await client.query("ALTER TABLE hcm.events ADD COLUMN IF NOT EXISTS hosts JSONB NOT NULL DEFAULT '[]'::jsonb;");
 
     // 3. Quick Links table
     await client.query(`
@@ -251,7 +253,7 @@ async function initDb() {
       await client.query(`
         INSERT INTO hcm.quick_links (title, description, category, url, icon, placeholder, sort_order)
         VALUES
-        ('HROrbit Portal', 'Your main employee portal', 'HR', '/dashboard', 'Orbit', false, 1),
+        ('HR orbit', 'Open HR orbit', 'HR', 'https://hrorbit.simplify3x.com/login', 'Orbit', false, 1),
         ('Leave Management', 'Review and apply for leaves', 'HR', '#placeholder-leave', 'CalendarDays', true, 2),
         ('Reward Store', 'Explore recognition rewards and points', 'Benefits', '#placeholder-rewards', 'Gift', true, 3),
         ('Learning Resources', 'Find your next learning path and courses', 'Learning', '/learning', 'GraduationCap', false, 4),
