@@ -23,7 +23,10 @@ exports.getAllNotifications = async (req, res, next) => {
 exports.markRead = async (req, res, next) => {
   try {
     const { id } = req.params;
-    await query('UPDATE hcm.notifications SET read = true WHERE id = $1 AND employee_id = $2', [id, req.user?.id]);
+    await query(
+      'UPDATE hcm.notifications SET read = true WHERE id = $1 AND (employee_id = $2 OR employee_id IS NULL)',
+      [id, req.user?.id]
+    );
     res.json({ success: true, message: 'Notification marked as read' });
   } catch (err) {
     next(err);
@@ -32,9 +35,29 @@ exports.markRead = async (req, res, next) => {
 
 exports.markAllRead = async (req, res, next) => {
   try {
-    await query('UPDATE hcm.notifications SET read = true WHERE employee_id = $1', [req.user?.id]);
-    res.json({ success: true, message: 'All notifications marked as read' });
+    const notificationIds = Array.isArray(req.body?.notificationIds)
+      ? req.body.notificationIds
+        .map((id) => Number(id))
+        .filter((id) => Number.isInteger(id))
+      : [];
+
+    if (!notificationIds.length) {
+      return res.json({ success: true, data: { updated: 0 } });
+    }
+
+    const result = await query(
+      `
+        UPDATE hcm.notifications
+        SET read = true
+        WHERE id = ANY($1::int[])
+          AND (employee_id = $2 OR employee_id IS NULL)
+          AND COALESCE(read, false) = false
+      `,
+      [notificationIds, req.user?.id]
+    );
+    res.json({ success: true, data: { updated: result.rowCount } });
   } catch (err) {
     next(err);
   }
 };
+
