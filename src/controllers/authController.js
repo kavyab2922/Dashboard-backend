@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const { query } = require('../config/db');
 const { generateToken } = require('../middleware/auth');
+
 const logger = require('../config/logger');
 
 function dateOnly(value) {
@@ -64,6 +65,21 @@ function locationValue(user) {
     }
   }
   return null;
+}
+
+function normalizeAssetUrl(url) {
+  if (!url || typeof url !== 'string') return url;
+  try {
+    if (url.includes('.s3.') && url.includes('amazonaws.com')) {
+      const parsed = new URL(url);
+      const pathname = parsed.pathname.replace(/^\/+/, '');
+      const filename = pathname.startsWith('uploads/') ? pathname.slice('uploads/'.length) : pathname;
+      return `/uploads/${filename}`;
+    }
+  } catch {
+    // ignore
+  }
+  return url;
 }
 
 function isGrantedHrAdmin(identity) {
@@ -350,8 +366,8 @@ exports.getMe = async (req, res, next) => {
           jobTitle: isSrinagaraj ? 'Software Engineer (Intern)' : (profile.jobTitle || 'Employee'),
           designation: isSrinagaraj ? 'Software Engineer (Intern)' : (profile.jobTitle || 'Employee'),
           department: req.user?.department || 'General',
-          avatar: req.user?.avatar || req.user?.avatar_url || req.user?.profile_picture_url || req.user?.profilePictureUrl || req.user?.profilePicture || req.user?.photoUrl || req.user?.photo || null,
-          cover: req.user?.cover || req.user?.cover_url || req.user?.coverUrl || null,
+          avatar: normalizeAssetUrl(req.user?.avatar || req.user?.avatar_url || req.user?.profile_picture_url || req.user?.profilePictureUrl || req.user?.profilePicture || req.user?.photoUrl || req.user?.photo || null),
+          cover: normalizeAssetUrl(req.user?.cover || req.user?.cover_url || req.user?.coverUrl || null),
         },
       });
     }
@@ -387,8 +403,8 @@ exports.getMe = async (req, res, next) => {
       interests: row.interests || ['Design Systems', 'React & TypeScript', 'PostgreSQL', 'User Experience', 'Cloud'],
       initials,
       color: 'blue',
-      avatar: row.avatar_url || row.profile_picture_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&h=400&q=85',
-      cover: row.cover_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&h=400&q=85',
+      avatar: normalizeAssetUrl(row.avatar_url || row.profile_picture_url) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&h=400&q=85',
+      cover: normalizeAssetUrl(row.cover_url) || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&h=400&q=85',
     };
 
     res.json({ success: true, user });

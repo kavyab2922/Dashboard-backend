@@ -1,6 +1,11 @@
 require('dotenv').config();
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+const fs = require('fs');
+// Load backend environment variables before importing routes/controllers that create the S3 client.
+require('dotenv').config({
+  path: path.resolve(__dirname, '../.env'),
+  override: true,
+});
 const express = require('express');
 const cors = require('cors');
 const logger = require('./config/logger');
@@ -40,7 +45,38 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Static file serving for uploads
 const uploadDir = path.resolve(process.env.UPLOAD_PATH || './uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 app.use('/uploads', express.static(uploadDir));
+
+// Fallback: If a requested upload is in S3 but not on local disk, fetch and cache it
+app.get('/uploads/*filename', async (req, res) => {
+  // Express 5 returns wildcard params as an array of path segments.
+  const filename = [].concat(req.params.filename).join('/');
+  try {
+    const { getObjectStream } = require('./config/s3');
+    const key = filename.startsWith('uploads/') ? filename : `uploads/${filename}`;
+    const s3Response = await getObjectStream(key);
+    if (!s3Response || !s3Response.Body) {
+      return res.status(404).json({ success: false, message: 'File not found' });
+    }
+
+    res.setHeader('Content-Type', s3Response.ContentType || 'image/jpeg');
+    if (s3Response.ContentLength) {
+      res.setHeader('Content-Length', s3Response.ContentLength);
+    }
+
+    // Save locally for future fast hits
+    const localFilePath = path.join(uploadDir, path.basename(filename));
+    const writeStream = fs.createWriteStream(localFilePath);
+    s3Response.Body.pipe(writeStream);
+    s3Response.Body.pipe(res);
+  } catch (err) {
+    logger.debug(`Upload not found in local or S3 (/uploads/${filename}): ${err.message}`);
+    return res.status(404).json({ success: false, message: 'File not found' });
+  }
+});
 
 // Request logging in development
 if (process.env.NODE_ENV === 'development') {

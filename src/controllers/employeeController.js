@@ -262,52 +262,46 @@ exports.markAllBirthdaysRead = async (req, res, next) => {
   }
 };
 
+// Resolves the employee row the same way /auth/me does, so profile writes land
+// on the row that is read back (Keycloak sessions carry a synthetic "keycloak:" id).
+async function resolveEmployeeId(user) {
+  const userId = String(user?.id || user?.employee_id || user?.employeeId || '');
+  const identity = String(user?.email || user?.official_email || user?.employee_code || user?.employeeCode || user?.name || userId).trim().toLowerCase();
+  const result = await query(
+    `SELECT e.id FROM hcm.employees e
+     WHERE ($1::text !~ '^keycloak:' AND e.id::text = $1)
+        OR LOWER(e.official_email) = $2
+        OR LOWER(e.personal_email) = $2
+        OR LOWER(e.employee_code) = LOWER($3)
+     LIMIT 1`,
+    [userId, identity, String(user?.employee_code || '')]
+  );
+  return result.rows[0]?.id || null;
+}
+
 // Update an employee profile.
 exports.updateProfile = async (req, res, next) => {
   try {
-    const userId = req.user?.id || 15002;
+    const employeeId = await resolveEmployeeId(req.user);
+    if (!employeeId) {
+      return res.status(404).json({ success: false, message: 'No employee record found for this account' });
+    }
+    const { bio, location, roleTitle, interests, coverUrl, avatarUrl } = req.body;
+    const has = (key) => Object.prototype.hasOwnProperty.call(req.body, key);
 
-    const {
-      bio,
-      location,
-      roleTitle,
-      interests,
-      coverUrl,
-      avatarUrl,
-    } = req.body;
-
-    await query(
-      `
-        INSERT INTO hcm.user_profiles (
-          employee_id,
-          bio,
-          location,
-          role_title,
-          interests,
-          cover_url,
-          avatar_url,
-          updated_at
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)
-        ON CONFLICT (employee_id) DO UPDATE SET
-          bio = COALESCE(EXCLUDED.bio, hcm.user_profiles.bio),
-          location = COALESCE(EXCLUDED.location, hcm.user_profiles.location),
-          role_title = COALESCE(EXCLUDED.role_title, hcm.user_profiles.role_title),
-          interests = COALESCE(EXCLUDED.interests, hcm.user_profiles.interests),
-          cover_url = COALESCE(EXCLUDED.cover_url, hcm.user_profiles.cover_url),
-          avatar_url = COALESCE(EXCLUDED.avatar_url, hcm.user_profiles.avatar_url),
-          updated_at = CURRENT_TIMESTAMP
-      `,
-      [
-        userId,
-        bio,
-        location,
-        roleTitle,
-        JSON.stringify(interests || []),
-        coverUrl,
-        avatarUrl,
-      ]
-    );
+    // Only overwrite fields the client sent; an explicit null clears the photo/cover.
+    await query(`
+      INSERT INTO hcm.user_profiles (employee_id, bio, location, role_title, interests, cover_url, avatar_url, updated_at)
+      VALUES ($1, $2, $3, $4, COALESCE($5::jsonb, '[]'::jsonb), $6, $7, CURRENT_TIMESTAMP)
+      ON CONFLICT (employee_id) DO UPDATE SET
+        bio = COALESCE(EXCLUDED.bio, hcm.user_profiles.bio),
+        location = COALESCE(EXCLUDED.location, hcm.user_profiles.location),
+        role_title = COALESCE(EXCLUDED.role_title, hcm.user_profiles.role_title),
+        interests = CASE WHEN $5::jsonb IS NULL THEN hcm.user_profiles.interests ELSE EXCLUDED.interests END,
+        cover_url = CASE WHEN $8 THEN EXCLUDED.cover_url ELSE hcm.user_profiles.cover_url END,
+        avatar_url = CASE WHEN $9 THEN EXCLUDED.avatar_url ELSE hcm.user_profiles.avatar_url END,
+        updated_at = CURRENT_TIMESTAMP
+    `, [employeeId, bio, location, roleTitle, interests ? JSON.stringify(interests) : null, coverUrl ?? null, avatarUrl ?? null, has('coverUrl'), has('avatarUrl')]);
 
     await redis.del('hrobit:employees:list:v4');
     await redis.del('hrobit:employees:list:v3');
