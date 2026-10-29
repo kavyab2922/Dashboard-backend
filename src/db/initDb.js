@@ -91,7 +91,23 @@ async function initDb() {
       );
     `);
 
-    // 6. Learning Courses table
+    // 6. Durable per-user birthday notification read state
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS hcm.birthday_notification_reads (
+        viewer_employee_id INTEGER NOT NULL,
+        birthday_employee_id INTEGER NOT NULL,
+        birthday_date DATE NOT NULL,
+        read BOOLEAN NOT NULL DEFAULT true,
+        read_at TIMESTAMP,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (viewer_employee_id, birthday_employee_id, birthday_date)
+      );
+      CREATE INDEX IF NOT EXISTS birthday_notification_reads_viewer_date_idx
+        ON hcm.birthday_notification_reads (viewer_employee_id, birthday_date);
+    `);
+
+    // 7. Learning Courses table
     await client.query(`
       CREATE TABLE IF NOT EXISTS hcm.learning_courses (
         id SERIAL PRIMARY KEY,

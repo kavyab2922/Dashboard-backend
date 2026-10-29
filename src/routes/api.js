@@ -1,7 +1,11 @@
 const express = require('express');
 const router = express.Router();
 
-const { authenticate, requireAdminForEventImage } = require('../middleware/auth');
+const {
+  authenticate,
+  requireAdminForEventImage,
+} = require('../middleware/auth');
+
 const upload = require('../middleware/upload');
 
 const authController = require('../controllers/authController');
@@ -17,17 +21,19 @@ const gameController = require('../controllers/gameController');
 const dashboardController = require('../controllers/dashboardController');
 const moodController = require('../controllers/moodController');
 const uploadController = require('../controllers/uploadController');
+
 const { pool } = require('../config/db');
 const redis = require('../config/redis');
 
-// Health Check
+// Health check
 router.get('/health', async (req, res) => {
   let dbStatus = 'disconnected';
+
   try {
     await pool.query('SELECT 1');
     dbStatus = 'connected';
-  } catch (e) {
-    dbStatus = 'error: ' + e.message;
+  } catch (error) {
+    dbStatus = `error: ${error.message}`;
   }
 
   res.json({
@@ -35,81 +41,309 @@ router.get('/health', async (req, res) => {
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
     database: dbStatus,
-    redis: redis.client && redis.client.isOpen ? 'connected' : 'disabled_or_connecting',
+    redis:
+      redis.client && redis.client.isOpen
+        ? 'connected'
+        : 'disabled_or_connecting',
   });
 });
 
-// Auth & User Profile
+// Authentication and user profile
 router.post('/auth/login', authController.login);
 router.get('/auth/me', authenticate, authController.getMe);
 router.get('/profile', authenticate, authController.getMe);
 router.put('/profile', authenticate, employeeController.updateProfile);
 
-// Employees & Celebrations
-router.get('/employees', authenticate, employeeController.getEmployees);
-router.get('/celebrations', authenticate, employeeController.getCelebrations);
-router.get('/hr-contacts', authenticate, employeeController.getHRContacts);
+// Employees, birthday notifications and celebrations
+router.get(
+  '/employees',
+  authenticate,
+  employeeController.getEmployees
+);
 
-// Announcements (CRUD)
-router.get('/announcements', authenticate, announcementController.getAllAnnouncements);
-router.post('/announcements', authenticate, announcementController.createAnnouncement);
-router.put('/announcements/:id', authenticate, announcementController.updateAnnouncement);
-router.delete('/announcements/:id', authenticate, announcementController.deleteAnnouncement);
+router.get(
+  '/birthdays/today',
+  authenticate,
+  employeeController.getTodaysBirthdays
+);
 
-// Events (CRUD)
-router.get('/events', authenticate, eventController.getAllEvents);
-router.post('/events', authenticate, requireAdminForEventImage, eventController.createEvent);
-router.put('/events/:id', authenticate, requireAdminForEventImage, eventController.updateEvent);
-router.delete('/events/:id', authenticate, eventController.deleteEvent);
+router.put(
+  '/birthdays/read-all',
+  authenticate,
+  employeeController.markAllBirthdaysRead
+);
 
-// Quick Links (CRUD)
-router.get('/quick-links', authenticate, quickLinkController.getAllQuickLinks);
-router.post('/quick-links', authenticate, quickLinkController.createQuickLink);
-router.put('/quick-links/:id', authenticate, quickLinkController.updateQuickLink);
-router.delete('/quick-links/:id', authenticate, quickLinkController.deleteQuickLink);
+router.put(
+  '/birthdays/:employeeId/read',
+  authenticate,
+  employeeController.markBirthdayRead
+);
+
+router.get(
+  '/celebrations',
+  authenticate,
+  employeeController.getCelebrations
+);
+
+router.get(
+  '/hr-contacts',
+  authenticate,
+  employeeController.getHRContacts
+);
+
+// Announcements
+router.get(
+  '/announcements',
+  authenticate,
+  announcementController.getAllAnnouncements
+);
+
+router.post(
+  '/announcements',
+  authenticate,
+  announcementController.createAnnouncement
+);
+
+router.put(
+  '/announcements/:id',
+  authenticate,
+  announcementController.updateAnnouncement
+);
+
+router.delete(
+  '/announcements/:id',
+  authenticate,
+  announcementController.deleteAnnouncement
+);
+
+// Events
+router.get(
+  '/events',
+  authenticate,
+  eventController.getAllEvents
+);
+
+router.post(
+  '/events',
+  authenticate,
+  requireAdminForEventImage,
+  eventController.createEvent
+);
+
+router.put(
+  '/events/:id',
+  authenticate,
+  requireAdminForEventImage,
+  eventController.updateEvent
+);
+
+router.delete(
+  '/events/:id',
+  authenticate,
+  eventController.deleteEvent
+);
+
+// Quick links
+router.get(
+  '/quick-links',
+  authenticate,
+  quickLinkController.getAllQuickLinks
+);
+
+router.post(
+  '/quick-links',
+  authenticate,
+  quickLinkController.createQuickLink
+);
+
+router.put(
+  '/quick-links/:id',
+  authenticate,
+  quickLinkController.updateQuickLink
+);
+
+router.delete(
+  '/quick-links/:id',
+  authenticate,
+  quickLinkController.deleteQuickLink
+);
 
 // Kudos
-router.get('/kudos', authenticate, kudoController.getAllKudos);
-router.post('/kudos', authenticate, kudoController.createKudo);
+router.get(
+  '/kudos',
+  authenticate,
+  kudoController.getAllKudos
+);
+
+router.post(
+  '/kudos',
+  authenticate,
+  kudoController.createKudo
+);
 
 // Notifications
-router.get('/notifications', authenticate, notificationController.getAllNotifications);
-router.put('/notifications/:id/read', authenticate, notificationController.markRead);
-router.put('/notifications/read-all', authenticate, notificationController.markAllRead);
+router.get(
+  '/notifications',
+  authenticate,
+  notificationController.getAllNotifications
+);
 
-// Learning Courses
-router.get('/courses', authenticate, courseController.getAllCourses);
+router.put(
+  '/notifications/:id/read',
+  authenticate,
+  notificationController.markRead
+);
+
+router.put(
+  '/notifications/read-all',
+  authenticate,
+  notificationController.markAllRead
+);
+
+// Learning courses
+router.get(
+  '/courses',
+  authenticate,
+  courseController.getAllCourses
+);
 
 // FAQs
-router.get('/faqs', authenticate, faqController.getAllFaqs);
+router.get(
+  '/faqs',
+  authenticate,
+  faqController.getAllFaqs
+);
 
 // Games
-router.get('/games', authenticate, gameController.getAllGames);
-router.get('/daily-games', authenticate, gameController.listDailyGames);
-router.get('/daily-games/me/stats', authenticate, gameController.getStats);
-router.get('/daily-games/:gameId/puzzle', authenticate, gameController.getPuzzle);
-router.post('/daily-games/:gameId/sessions', authenticate, gameController.startGame);
-router.post('/daily-games/:gameId/check', authenticate, gameController.checkSolution);
-router.post('/daily-games/:gameId/hint', authenticate, gameController.useHint);
-router.post('/daily-games/:gameId/complete', authenticate, gameController.completeGame);
-router.get('/daily-games/leaderboard', authenticate, gameController.getLeaderboard);
-router.get('/daily-games/champions', authenticate, gameController.getChampions);
-router.get('/daily-games/celebrations', authenticate, gameController.getCelebrations);
-router.post('/daily-games/celebrations/ack', authenticate, gameController.acknowledgeCelebration);
+router.get(
+  '/games',
+  authenticate,
+  gameController.getAllGames
+);
 
-// Dashboard Summary
-router.get('/dashboard/summary', authenticate, dashboardController.getDashboardSummary);
+// Daily games
+router.get(
+  '/daily-games',
+  authenticate,
+  gameController.listDailyGames
+);
 
-// Team Mood & Appreciation
-router.get('/moods/state', authenticate, moodController.getMoodState);
-router.put('/moods/today', authenticate, moodController.saveMood);
-router.get('/moods/team', authenticate, moodController.getTeamMoods);
-router.post('/moods/:id/reactions', authenticate, moodController.addReaction);
-router.post('/moods/:id/messages', authenticate, moodController.sendMessage);
-router.get('/mood-messages', authenticate, moodController.getMessages);
-router.put('/mood-messages/:id/chat', authenticate, moodController.respondToChatOffer);
+router.get(
+  '/daily-games/me/stats',
+  authenticate,
+  gameController.getStats
+);
 
-// File Upload
-router.post('/upload', authenticate, upload.single('file'), uploadController.uploadFile);
+router.get(
+  '/daily-games/:gameId/puzzle',
+  authenticate,
+  gameController.getPuzzle
+);
+
+router.post(
+  '/daily-games/:gameId/sessions',
+  authenticate,
+  gameController.startGame
+);
+
+router.post(
+  '/daily-games/:gameId/check',
+  authenticate,
+  gameController.checkSolution
+);
+
+router.post(
+  '/daily-games/:gameId/hint',
+  authenticate,
+  gameController.useHint
+);
+
+router.post(
+  '/daily-games/:gameId/complete',
+  authenticate,
+  gameController.completeGame
+);
+
+router.get(
+  '/daily-games/leaderboard',
+  authenticate,
+  gameController.getLeaderboard
+);
+
+router.get(
+  '/daily-games/champions',
+  authenticate,
+  gameController.getChampions
+);
+
+router.get(
+  '/daily-games/celebrations',
+  authenticate,
+  gameController.getCelebrations
+);
+
+router.post(
+  '/daily-games/celebrations/ack',
+  authenticate,
+  gameController.acknowledgeCelebration
+);
+
+// Dashboard summary
+router.get(
+  '/dashboard/summary',
+  authenticate,
+  dashboardController.getDashboardSummary
+);
+
+// Team mood and appreciation
+router.get(
+  '/moods/state',
+  authenticate,
+  moodController.getMoodState
+);
+
+router.put(
+  '/moods/today',
+  authenticate,
+  moodController.saveMood
+);
+
+router.get(
+  '/moods/team',
+  authenticate,
+  moodController.getTeamMoods
+);
+
+router.post(
+  '/moods/:id/reactions',
+  authenticate,
+  moodController.addReaction
+);
+
+router.post(
+  '/moods/:id/messages',
+  authenticate,
+  moodController.sendMessage
+);
+
+router.get(
+  '/mood-messages',
+  authenticate,
+  moodController.getMessages
+);
+
+router.put(
+  '/mood-messages/:id/chat',
+  authenticate,
+  moodController.respondToChatOffer
+);
+
+// File upload
+router.post(
+  '/upload',
+  authenticate,
+  upload.single('file'),
+  uploadController.uploadFile
+);
 
 module.exports = router;
