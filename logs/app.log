@@ -8067,3 +8067,706 @@
 {"duration":41,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n      SELECT id, from_name AS \"from\", to_name AS \"to\", category, message, initials, color,\n        ","timestamp":"2026-10-29 11:02:08"}
 {"duration":9,"level":"debug","message":"Executed query","rows":200,"service":"hrobit-backend","text":"\n      SELECT e.id, e.first_name, e.last_name, e.dob, e.join_date,\n             d.department_name, d","timestamp":"2026-10-29 11:02:08"}
 {"duration":20,"level":"debug","message":"Executed query","rows":728,"service":"hrobit-backend","text":"\n      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.dob, e.join_date","timestamp":"2026-10-29 11:02:08"}
+{"level":"info","message":"Initializing database tables in schema hcm...","service":"hrobit-backend","timestamp":"2026-10-29 11:58:00"}
+{"level":"info","message":"Connected to Redis server","service":"hrobit-backend","timestamp":"2026-10-29 11:58:00"}
+{"level":"info","message":"Database initialization & seeding completed successfully.","service":"hrobit-backend","timestamp":"2026-10-29 11:58:01"}
+{"level":"info","message":"Connected to Redis server","service":"hrobit-backend","timestamp":"2026-10-29 11:58:02"}
+{"level":"info","message":"Initializing database tables in schema hcm...","service":"hrobit-backend","timestamp":"2026-10-29 11:58:02"}
+{"level":"info","message":"Database initialization & seeding completed successfully.","service":"hrobit-backend","timestamp":"2026-10-29 11:58:02"}
+{"level":"info","message":"Server successfully started on port 3000 [development]","service":"hrobit-backend","timestamp":"2026-10-29 11:58:02"}
+{"level":"info","message":"API Base URL: http://localhost:3000/api","service":"hrobit-backend","timestamp":"2026-10-29 11:58:02"}
+{"level":"debug","message":"GET /api/moods/state","service":"hrobit-backend","timestamp":"2026-10-29 11:59:15"}
+{"level":"debug","message":"GET /api/hr-contacts","service":"hrobit-backend","timestamp":"2026-10-29 11:59:15"}
+{"level":"debug","message":"GET /api/moods/team","service":"hrobit-backend","timestamp":"2026-10-29 11:59:15"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 11:59:15"}
+{"level":"debug","message":"GET /api/announcements","service":"hrobit-backend","timestamp":"2026-10-29 11:59:15"}
+{"level":"debug","message":"GET /api/events","service":"hrobit-backend","timestamp":"2026-10-29 11:59:15"}
+{"duration":70,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 11:59:15"}
+{"duration":67,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, details, category, priority, pinned, read, image,\n            ","timestamp":"2026-10-29 11:59:15"}
+{"duration":76,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rs","timestamp":"2026-10-29 11:59:15"}
+{"duration":108,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"\n    SELECT id\n    FROM hcm.employees\n    WHERE LOWER(employee_code) = ANY($1::text[])\n       OR LOW","timestamp":"2026-10-29 11:59:15"}
+{"duration":98,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"\n    SELECT id\n    FROM hcm.employees\n    WHERE LOWER(employee_code) = ANY($1::text[])\n       OR LOW","timestamp":"2026-10-29 11:59:15"}
+{"level":"debug","message":"GET /api/quick-links","service":"hrobit-backend","timestamp":"2026-10-29 11:59:15"}
+{"duration":121,"level":"debug","message":"Executed query","rows":797,"service":"hrobit-backend","text":"\n      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email, ","timestamp":"2026-10-29 11:59:15"}
+{"duration":58,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 11:59:15"}
+{"duration":43,"level":"debug","message":"Executed query","rows":10,"service":"hrobit-backend","text":"\n      SELECT DISTINCT ON (LOWER(TRIM(holiday_name)), start_date::date)\n             id, holiday_nam","timestamp":"2026-10-29 11:59:15"}
+{"level":"debug","message":"GET /api/kudos","service":"hrobit-backend","timestamp":"2026-10-29 11:59:15"}
+{"level":"debug","message":"GET /api/courses","service":"hrobit-backend","timestamp":"2026-10-29 11:59:15"}
+{"duration":79,"level":"debug","message":"Executed query","rows":6,"service":"hrobit-backend","text":"\n      SELECT id, title, description, category, url, icon, placeholder, sort_order\n      FROM hcm.qu","timestamp":"2026-10-29 11:59:15"}
+{"level":"debug","message":"GET /api/celebrations","service":"hrobit-backend","timestamp":"2026-10-29 11:59:15"}
+{"duration":54,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 11:59:15"}
+{"level":"debug","message":"GET /api/moods/state","service":"hrobit-backend","timestamp":"2026-10-29 11:59:15"}
+{"duration":21,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n      SELECT id, from_name AS \"from\", to_name AS \"to\", category, message, initials, color,\n        ","timestamp":"2026-10-29 11:59:15"}
+{"level":"debug","message":"GET /api/moods/team","service":"hrobit-backend","timestamp":"2026-10-29 11:59:15"}
+{"duration":23,"level":"debug","message":"Executed query","rows":8,"service":"hrobit-backend","text":"\n      SELECT id, title, provider, category, level, duration, access, certificate, description, url,","timestamp":"2026-10-29 11:59:15"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 11:59:15"}
+{"duration":13,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"\n    SELECT id\n    FROM hcm.employees\n    WHERE LOWER(employee_code) = ANY($1::text[])\n       OR LOW","timestamp":"2026-10-29 11:59:15"}
+{"duration":13,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"\n    SELECT id\n    FROM hcm.employees\n    WHERE LOWER(employee_code) = ANY($1::text[])\n       OR LOW","timestamp":"2026-10-29 11:59:15"}
+{"duration":9,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 11:59:15"}
+{"duration":12,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 11:59:15"}
+{"duration":13,"level":"debug","message":"Executed query","rows":200,"service":"hrobit-backend","text":"\n      SELECT e.id, e.first_name, e.last_name, e.dob, e.join_date,\n             d.department_name, d","timestamp":"2026-10-29 11:59:15"}
+{"duration":44,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 11:59:15"}
+{"level":"debug","message":"GET /api/moods/state","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/moods/team","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/moods/state","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/auth/me","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/announcements","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/events","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/moods/team","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/courses","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/quick-links","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/hr-contacts","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/kudos","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/faqs","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/games","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/employees","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/celebrations","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/auth/me","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/announcements","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/events","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/faqs","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/courses","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/quick-links","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/hr-contacts","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/kudos","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/games","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/employees","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"GET /api/celebrations","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"warn","message":"Invalid JWT token: jwt expired","service":"hrobit-backend","timestamp":"2026-10-29 12:03:02"}
+{"level":"debug","message":"POST /api/auth/login","service":"hrobit-backend","timestamp":"2026-10-29 12:03:18"}
+{"level":"info","message":"Initializing database tables in schema hcm...","service":"hrobit-backend","timestamp":"2026-10-29 12:03:20"}
+{"level":"info","message":"Connected to Redis server","service":"hrobit-backend","timestamp":"2026-10-29 12:03:20"}
+{"level":"info","message":"Connected to Redis server","service":"hrobit-backend","timestamp":"2026-10-29 12:03:22"}
+{"level":"info","message":"Initializing database tables in schema hcm...","service":"hrobit-backend","timestamp":"2026-10-29 12:03:22"}
+{"level":"info","message":"Database initialization & seeding completed successfully.","service":"hrobit-backend","timestamp":"2026-10-29 12:03:22"}
+{"level":"info","message":"Server successfully started on port 3000 [development]","service":"hrobit-backend","timestamp":"2026-10-29 12:03:22"}
+{"level":"info","message":"API Base URL: http://localhost:3000/api","service":"hrobit-backend","timestamp":"2026-10-29 12:03:22"}
+{"level":"debug","message":"POST /api/auth/login","service":"hrobit-backend","timestamp":"2026-10-29 12:03:22"}
+{"level":"info","message":"HROrbit profile date fields for srinagaraj.p@simlify3x.com: [] user=undefined","service":"hrobit-backend","timestamp":"2026-10-29 12:03:22"}
+{"level":"warn","message":"HROrbit rejected login for srinagaraj.p@simlify3x.com: Employee not found in the system","service":"hrobit-backend","timestamp":"2026-10-29 12:03:22"}
+{"duration":15,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:03:22"}
+{"level":"debug","message":"POST /api/auth/login","service":"hrobit-backend","timestamp":"2026-10-29 12:03:22"}
+{"level":"info","message":"HROrbit profile date fields for srinagaraj.p@simlify3x.com: [] user=undefined","service":"hrobit-backend","timestamp":"2026-10-29 12:03:22"}
+{"level":"warn","message":"HROrbit rejected login for srinagaraj.p@simlify3x.com: Employee not found in the system","service":"hrobit-backend","timestamp":"2026-10-29 12:03:22"}
+{"duration":11,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:03:22"}
+{"level":"debug","message":"POST /api/auth/login","service":"hrobit-backend","timestamp":"2026-10-29 12:03:23"}
+{"level":"info","message":"HROrbit profile date fields for srinagaraj.p@simlify3x.com: [] user=undefined","service":"hrobit-backend","timestamp":"2026-10-29 12:03:23"}
+{"level":"warn","message":"HROrbit rejected login for srinagaraj.p@simlify3x.com: Employee not found in the system","service":"hrobit-backend","timestamp":"2026-10-29 12:03:23"}
+{"duration":10,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:03:23"}
+{"level":"debug","message":"POST /api/auth/login","service":"hrobit-backend","timestamp":"2026-10-29 12:03:23"}
+{"level":"info","message":"HROrbit profile date fields for srinagaraj.p@simlify3x.com: [] user=undefined","service":"hrobit-backend","timestamp":"2026-10-29 12:03:23"}
+{"level":"warn","message":"HROrbit rejected login for srinagaraj.p@simlify3x.com: Employee not found in the system","service":"hrobit-backend","timestamp":"2026-10-29 12:03:23"}
+{"duration":13,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:03:23"}
+{"level":"debug","message":"POST /api/auth/login","service":"hrobit-backend","timestamp":"2026-10-29 12:03:23"}
+{"level":"info","message":"HROrbit profile date fields for srinagaraj.p@simlify3x.com: [] user=undefined","service":"hrobit-backend","timestamp":"2026-10-29 12:03:23"}
+{"level":"warn","message":"HROrbit rejected login for srinagaraj.p@simlify3x.com: Employee not found in the system","service":"hrobit-backend","timestamp":"2026-10-29 12:03:23"}
+{"duration":8,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:03:23"}
+{"level":"debug","message":"POST /api/auth/login","service":"hrobit-backend","timestamp":"2026-10-29 12:03:23"}
+{"level":"info","message":"HROrbit profile date fields for srinagaraj.p@simlify3x.com: [] user=undefined","service":"hrobit-backend","timestamp":"2026-10-29 12:03:23"}
+{"level":"warn","message":"HROrbit rejected login for srinagaraj.p@simlify3x.com: Employee not found in the system","service":"hrobit-backend","timestamp":"2026-10-29 12:03:23"}
+{"duration":8,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:03:23"}
+{"level":"debug","message":"POST /api/auth/login","service":"hrobit-backend","timestamp":"2026-10-29 12:03:23"}
+{"level":"info","message":"HROrbit profile date fields for srinagaraj.p@simlify3x.com: [] user=undefined","service":"hrobit-backend","timestamp":"2026-10-29 12:03:24"}
+{"level":"warn","message":"HROrbit rejected login for srinagaraj.p@simlify3x.com: Employee not found in the system","service":"hrobit-backend","timestamp":"2026-10-29 12:03:24"}
+{"duration":16,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:03:24"}
+{"level":"debug","message":"POST /api/auth/login","service":"hrobit-backend","timestamp":"2026-10-29 12:03:24"}
+{"level":"info","message":"HROrbit profile date fields for srinagaraj.p@simlify3x.com: [] user=undefined","service":"hrobit-backend","timestamp":"2026-10-29 12:03:24"}
+{"level":"warn","message":"HROrbit rejected login for srinagaraj.p@simlify3x.com: Employee not found in the system","service":"hrobit-backend","timestamp":"2026-10-29 12:03:24"}
+{"duration":16,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:03:24"}
+{"level":"debug","message":"POST /api/auth/login","service":"hrobit-backend","timestamp":"2026-10-29 12:03:31"}
+{"level":"info","message":"HROrbit profile date fields for srinagaraj.p@simlify3x.com: [] user=undefined","service":"hrobit-backend","timestamp":"2026-10-29 12:03:31"}
+{"level":"warn","message":"HROrbit rejected login for srinagaraj.p@simlify3x.com: Employee not found in the system","service":"hrobit-backend","timestamp":"2026-10-29 12:03:31"}
+{"duration":8,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:03:31"}
+{"level":"debug","message":"POST /api/auth/login","service":"hrobit-backend","timestamp":"2026-10-29 12:03:48"}
+{"level":"info","message":"HROrbit profile date fields for srinagaraj.p@simlify3x.com: [] user=undefined","service":"hrobit-backend","timestamp":"2026-10-29 12:03:48"}
+{"level":"warn","message":"HROrbit rejected login for srinagaraj.p@simlify3x.com: Employee not found in the system","service":"hrobit-backend","timestamp":"2026-10-29 12:03:48"}
+{"duration":692,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:03:49"}
+{"level":"debug","message":"POST /api/auth/login","service":"hrobit-backend","timestamp":"2026-10-29 12:04:41"}
+{"level":"info","message":"HROrbit profile date fields for ganesh.r@simplify3x.com: [] user=[]","service":"hrobit-backend","timestamp":"2026-10-29 12:04:41"}
+{"level":"info","message":"HROrbit authenticated successfully for ganesh.r@simplify3x.com","service":"hrobit-backend","timestamp":"2026-10-29 12:04:41"}
+{"duration":78,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:04:42"}
+{"level":"debug","message":"GET /api/auth/me","service":"hrobit-backend","timestamp":"2026-10-29 12:04:42"}
+{"level":"debug","message":"GET /api/moods/state","service":"hrobit-backend","timestamp":"2026-10-29 12:04:42"}
+{"level":"debug","message":"GET /api/moods/team","service":"hrobit-backend","timestamp":"2026-10-29 12:04:42"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:04:42"}
+{"level":"debug","message":"GET /api/announcements","service":"hrobit-backend","timestamp":"2026-10-29 12:04:42"}
+{"level":"debug","message":"GET /api/quick-links","service":"hrobit-backend","timestamp":"2026-10-29 12:04:42"}
+{"duration":204,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:04:42"}
+{"level":"debug","message":"GET /api/events","service":"hrobit-backend","timestamp":"2026-10-29 12:04:42"}
+{"duration":71,"level":"debug","message":"Executed query","rows":6,"service":"hrobit-backend","text":"\n      SELECT id, title, description, category, url, icon, placeholder, sort_order\n      FROM hcm.qu","timestamp":"2026-10-29 12:04:42"}
+{"level":"debug","message":"GET /api/hr-contacts","service":"hrobit-backend","timestamp":"2026-10-29 12:04:42"}
+{"duration":33,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rs","timestamp":"2026-10-29 12:04:42"}
+{"duration":99,"level":"debug","message":"Executed query","rows":797,"service":"hrobit-backend","text":"\n      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email, ","timestamp":"2026-10-29 12:04:42"}
+{"duration":99,"level":"debug","message":"Executed query","rows":10,"service":"hrobit-backend","text":"\n      SELECT DISTINCT ON (LOWER(TRIM(holiday_name)), start_date::date)\n             id, holiday_nam","timestamp":"2026-10-29 12:04:42"}
+{"duration":259,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"\n      SELECT m.id, m.mood, m.visibility, m.submitted_at, m.checkin_date,\n             ((CURRENT_TIM","timestamp":"2026-10-29 12:04:42"}
+{"level":"debug","message":"GET /api/kudos","service":"hrobit-backend","timestamp":"2026-10-29 12:04:42"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:04:42"}
+{"level":"debug","message":"GET /api/courses","service":"hrobit-backend","timestamp":"2026-10-29 12:04:42"}
+{"duration":303,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, details, category, priority, pinned, read, image,\n            ","timestamp":"2026-10-29 12:04:42"}
+{"duration":52,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:04:42"}
+{"duration":60,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n      SELECT id, from_name AS \"from\", to_name AS \"to\", category, message, initials, color,\n        ","timestamp":"2026-10-29 12:04:42"}
+{"duration":316,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:04:42"}
+{"duration":325,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"\n      SELECT m.id, m.employee_id, m.mood, m.visibility, m.created_at, true AS identity_allowed,\n   ","timestamp":"2026-10-29 12:04:42"}
+{"level":"debug","message":"GET /api/faqs","service":"hrobit-backend","timestamp":"2026-10-29 12:04:42"}
+{"level":"debug","message":"GET /api/games","service":"hrobit-backend","timestamp":"2026-10-29 12:04:42"}
+{"level":"debug","message":"GET /api/employees","service":"hrobit-backend","timestamp":"2026-10-29 12:04:42"}
+{"duration":76,"level":"debug","message":"Executed query","rows":8,"service":"hrobit-backend","text":"\n      SELECT id, title, provider, category, level, duration, access, certificate, description, url,","timestamp":"2026-10-29 12:04:42"}
+{"duration":20,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:04:42"}
+{"duration":21,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT mood_checkin_id, reaction, COUNT(*)::int AS count FROM hcm.mood_reactions GROUP BY mood_check","timestamp":"2026-10-29 12:04:42"}
+{"duration":23,"level":"debug","message":"Executed query","rows":6,"service":"hrobit-backend","text":"\n      SELECT id, category, question, answer\n      FROM hcm.faqs\n      ORDER BY id ASC\n    ","timestamp":"2026-10-29 12:04:42"}
+{"level":"debug","message":"GET /api/celebrations","service":"hrobit-backend","timestamp":"2026-10-29 12:04:42"}
+{"level":"debug","message":"GET /api/moods/state","service":"hrobit-backend","timestamp":"2026-10-29 12:04:42"}
+{"level":"debug","message":"GET /api/moods/team","service":"hrobit-backend","timestamp":"2026-10-29 12:04:42"}
+{"duration":30,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"SELECT id, title, subtitle, difficulty, description, icon, color, available FROM hcm.games WHERE ava","timestamp":"2026-10-29 12:04:42"}
+{"duration":24,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT SUM(COALESCE(closing_balance::numeric, 0)) AS balance \n         FROM hcm.employee_leave_balan","timestamp":"2026-10-29 12:04:42"}
+{"duration":11,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"\n      SELECT m.id, m.mood, m.visibility, m.submitted_at, m.checkin_date,\n             ((CURRENT_TIM","timestamp":"2026-10-29 12:04:42"}
+{"duration":21,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"\n      SELECT m.id, m.employee_id, m.mood, m.visibility, m.created_at, true AS identity_allowed,\n   ","timestamp":"2026-10-29 12:04:42"}
+{"duration":17,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:04:42"}
+{"duration":37,"level":"debug","message":"Executed query","rows":728,"service":"hrobit-backend","text":"\n      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.dob, e.join_date","timestamp":"2026-10-29 12:04:42"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:04:42"}
+{"duration":52,"level":"debug","message":"Executed query","rows":200,"service":"hrobit-backend","text":"\n      SELECT e.id, e.first_name, e.last_name, e.dob, e.join_date,\n             d.department_name, d","timestamp":"2026-10-29 12:04:42"}
+{"duration":81,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT mood_checkin_id, reaction, COUNT(*)::int AS count FROM hcm.mood_reactions GROUP BY mood_check","timestamp":"2026-10-29 12:04:42"}
+{"duration":41,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:04:42"}
+{"duration":21,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:04:42"}
+{"duration":11,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT SUM(COALESCE(closing_balance::numeric, 0)) AS balance \n         FROM hcm.employee_leave_balan","timestamp":"2026-10-29 12:04:42"}
+{"duration":47,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:04:42"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:04:53"}
+{"duration":62,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:04:53"}
+{"duration":6,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:04:53"}
+{"duration":7,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT SUM(COALESCE(closing_balance::numeric, 0)) AS balance \n         FROM hcm.employee_leave_balan","timestamp":"2026-10-29 12:04:53"}
+{"duration":9,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:04:53"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:04:53"}
+{"duration":25,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:04:53"}
+{"duration":12,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:04:53"}
+{"duration":7,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT SUM(COALESCE(closing_balance::numeric, 0)) AS balance \n         FROM hcm.employee_leave_balan","timestamp":"2026-10-29 12:04:53"}
+{"duration":17,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:04:53"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:04:53"}
+{"duration":15,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:04:53"}
+{"duration":21,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:04:53"}
+{"duration":8,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT SUM(COALESCE(closing_balance::numeric, 0)) AS balance \n         FROM hcm.employee_leave_balan","timestamp":"2026-10-29 12:04:53"}
+{"duration":6,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:04:53"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:04:53"}
+{"duration":41,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:04:53"}
+{"duration":15,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:04:53"}
+{"duration":17,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT SUM(COALESCE(closing_balance::numeric, 0)) AS balance \n         FROM hcm.employee_leave_balan","timestamp":"2026-10-29 12:04:53"}
+{"duration":22,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:04:53"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:06:33"}
+{"duration":90,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:06:33"}
+{"duration":9,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:06:33"}
+{"duration":5,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:06:33"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:06:33"}
+{"duration":4,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:06:33"}
+{"duration":5,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:06:33"}
+{"duration":11,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:06:33"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:06:34"}
+{"duration":13,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:06:34"}
+{"duration":7,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:06:34"}
+{"duration":4,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:06:34"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:06:35"}
+{"duration":8,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:06:35"}
+{"duration":5,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:06:35"}
+{"duration":4,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:06:35"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:06:36"}
+{"duration":23,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:06:36"}
+{"duration":12,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:06:36"}
+{"duration":7,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:06:36"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:08:00"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:08:00"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:08:00"}
+{"duration":70,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:08:00"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:08:00"}
+{"duration":84,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:08:00"}
+{"duration":8,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:08:00"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:08:00"}
+{"duration":87,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:08:00"}
+{"duration":40,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:08:00"}
+{"duration":11,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:08:00"}
+{"duration":12,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:08:00"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:08:00"}
+{"duration":4,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:08:00"}
+{"duration":5,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:08:00"}
+{"duration":6,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:08:00"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:10:27"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:10:27"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:10:27"}
+{"duration":70,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:10:27"}
+{"duration":70,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:10:27"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:10:27"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:10:27"}
+{"duration":11,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:10:27"}
+{"duration":59,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:10:27"}
+{"duration":21,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:10:27"}
+{"duration":14,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:10:27"}
+{"duration":5,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:10:27"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:10:27"}
+{"duration":4,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:10:27"}
+{"duration":9,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:10:27"}
+{"duration":6,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:10:27"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:16:29"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:16:29"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:16:29"}
+{"duration":193,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:16:29"}
+{"duration":198,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:16:29"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:16:29"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:16:29"}
+{"duration":10,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:16:29"}
+{"duration":33,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:16:29"}
+{"duration":117,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:16:29"}
+{"duration":8,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:16:29"}
+{"duration":5,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:16:29"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:16:29"}
+{"duration":7,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:16:29"}
+{"duration":4,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:16:29"}
+{"duration":4,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:16:29"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:16:35"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:16:35"}
+{"duration":5,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:16:35"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:16:35"}
+{"duration":16,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:16:35"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:16:35"}
+{"duration":19,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:16:35"}
+{"duration":16,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:16:35"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:16:35"}
+{"duration":4,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:16:35"}
+{"duration":16,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:16:35"}
+{"duration":6,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:16:35"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:16:35"}
+{"duration":12,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:16:35"}
+{"duration":9,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:16:35"}
+{"duration":5,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:16:35"}
+{"level":"info","message":"Initializing database tables in schema hcm...","service":"hrobit-backend","timestamp":"2026-10-29 12:16:52"}
+{"level":"info","message":"Connected to Redis server","service":"hrobit-backend","timestamp":"2026-10-29 12:16:52"}
+{"level":"info","message":"Database initialization & seeding completed successfully.","service":"hrobit-backend","timestamp":"2026-10-29 12:16:53"}
+{"level":"info","message":"Server successfully started on port 3000 [development]","service":"hrobit-backend","timestamp":"2026-10-29 12:16:53"}
+{"level":"info","message":"API Base URL: http://localhost:3000/api","service":"hrobit-backend","timestamp":"2026-10-29 12:16:53"}
+{"level":"info","message":"Connected to Redis server","service":"hrobit-backend","timestamp":"2026-10-29 12:17:02"}
+{"level":"info","message":"Initializing database tables in schema hcm...","service":"hrobit-backend","timestamp":"2026-10-29 12:17:02"}
+{"level":"info","message":"Database initialization & seeding completed successfully.","service":"hrobit-backend","timestamp":"2026-10-29 12:17:02"}
+{"level":"info","message":"Server successfully started on port 3000 [development]","service":"hrobit-backend","timestamp":"2026-10-29 12:17:02"}
+{"level":"info","message":"API Base URL: http://localhost:3000/api","service":"hrobit-backend","timestamp":"2026-10-29 12:17:02"}
+{"level":"info","message":"Initializing database tables in schema hcm...","service":"hrobit-backend","timestamp":"2026-10-29 12:17:25"}
+{"level":"info","message":"Connected to Redis server","service":"hrobit-backend","timestamp":"2026-10-29 12:17:25"}
+{"level":"info","message":"Database initialization & seeding completed successfully.","service":"hrobit-backend","timestamp":"2026-10-29 12:17:25"}
+{"level":"info","message":"Server successfully started on port 3000 [development]","service":"hrobit-backend","timestamp":"2026-10-29 12:17:25"}
+{"level":"info","message":"API Base URL: http://localhost:3000/api","service":"hrobit-backend","timestamp":"2026-10-29 12:17:25"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:17:27"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:17:27"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:17:27"}
+{"duration":32,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:17:27"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:17:27"}
+{"duration":18,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:17:27"}
+{"duration":108,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:17:27"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:17:27"}
+{"duration":12,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:17:27"}
+{"duration":125,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:17:27"}
+{"duration":10,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:17:27"}
+{"duration":6,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:17:27"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:17:27"}
+{"duration":11,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:17:27"}
+{"duration":11,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:17:27"}
+{"duration":6,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:17:27"}
+{"level":"info","message":"Initializing database tables in schema hcm...","service":"hrobit-backend","timestamp":"2026-10-29 12:18:03"}
+{"level":"info","message":"Connected to Redis server","service":"hrobit-backend","timestamp":"2026-10-29 12:18:03"}
+{"level":"info","message":"Database initialization & seeding completed successfully.","service":"hrobit-backend","timestamp":"2026-10-29 12:18:03"}
+{"level":"info","message":"Server successfully started on port 3000 [development]","service":"hrobit-backend","timestamp":"2026-10-29 12:18:03"}
+{"level":"info","message":"API Base URL: http://localhost:3000/api","service":"hrobit-backend","timestamp":"2026-10-29 12:18:03"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:18:38"}
+{"duration":306,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:18:38"}
+{"duration":25,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:18:38"}
+{"duration":26,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:18:38"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:18:39"}
+{"duration":164,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:18:39"}
+{"duration":20,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:18:39"}
+{"duration":55,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:18:39"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:18:39"}
+{"duration":57,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:18:39"}
+{"duration":59,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:18:39"}
+{"duration":89,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:18:40"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:18:40"}
+{"duration":6,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:18:40"}
+{"duration":6,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:18:40"}
+{"duration":4,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:18:40"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:18:41"}
+{"duration":1027,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:18:42"}
+{"duration":57,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:18:42"}
+{"duration":157,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:18:42"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:18:42"}
+{"duration":209,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:18:42"}
+{"duration":81,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:18:43"}
+{"duration":15,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:18:43"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:18:43"}
+{"duration":18,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:18:43"}
+{"duration":9,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:18:43"}
+{"duration":84,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:18:43"}
+{"level":"info","message":"Initializing database tables in schema hcm...","service":"hrobit-backend","timestamp":"2026-10-29 12:19:12"}
+{"level":"info","message":"Connected to Redis server","service":"hrobit-backend","timestamp":"2026-10-29 12:19:12"}
+{"level":"info","message":"Database initialization & seeding completed successfully.","service":"hrobit-backend","timestamp":"2026-10-29 12:19:12"}
+{"level":"info","message":"Server successfully started on port 3000 [development]","service":"hrobit-backend","timestamp":"2026-10-29 12:19:12"}
+{"level":"info","message":"API Base URL: http://localhost:3000/api","service":"hrobit-backend","timestamp":"2026-10-29 12:19:12"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:19:15"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:19:15"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:19:15"}
+{"duration":20,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:19:15"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:19:15"}
+{"duration":13,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:19:15"}
+{"duration":84,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:19:15"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:19:15"}
+{"duration":86,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:19:15"}
+{"duration":8,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:19:15"}
+{"duration":6,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:19:16"}
+{"duration":5,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:19:16"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:19:16"}
+{"duration":7,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:19:16"}
+{"duration":10,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:19:16"}
+{"duration":4,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:19:16"}
+{"level":"info","message":"Connected to Redis server","service":"hrobit-backend","timestamp":"2026-10-29 12:22:44"}
+{"level":"info","message":"Initializing database tables in schema hcm...","service":"hrobit-backend","timestamp":"2026-10-29 12:22:47"}
+{"level":"info","message":"Database initialization & seeding completed successfully.","service":"hrobit-backend","timestamp":"2026-10-29 12:22:56"}
+{"level":"info","message":"Server successfully started on port 3000 [development]","service":"hrobit-backend","timestamp":"2026-10-29 12:22:56"}
+{"level":"info","message":"API Base URL: http://localhost:3000/api","service":"hrobit-backend","timestamp":"2026-10-29 12:22:56"}
+{"level":"info","message":"Connected to Redis server","service":"hrobit-backend","timestamp":"2026-10-29 12:23:25"}
+{"level":"info","message":"Initializing database tables in schema hcm...","service":"hrobit-backend","timestamp":"2026-10-29 12:23:25"}
+{"level":"info","message":"Database initialization & seeding completed successfully.","service":"hrobit-backend","timestamp":"2026-10-29 12:23:26"}
+{"level":"info","message":"Server successfully started on port 3000 [development]","service":"hrobit-backend","timestamp":"2026-10-29 12:23:26"}
+{"level":"info","message":"API Base URL: http://localhost:3000/api","service":"hrobit-backend","timestamp":"2026-10-29 12:23:26"}
+{"level":"info","message":"Initializing database tables in schema hcm...","service":"hrobit-backend","timestamp":"2026-10-29 12:23:56"}
+{"level":"info","message":"Connected to Redis server","service":"hrobit-backend","timestamp":"2026-10-29 12:23:56"}
+{"level":"info","message":"Database initialization & seeding completed successfully.","service":"hrobit-backend","timestamp":"2026-10-29 12:23:56"}
+{"level":"info","message":"Server successfully started on port 3000 [development]","service":"hrobit-backend","timestamp":"2026-10-29 12:23:56"}
+{"level":"info","message":"API Base URL: http://localhost:3000/api","service":"hrobit-backend","timestamp":"2026-10-29 12:23:56"}
+{"level":"info","message":"Initializing database tables in schema hcm...","service":"hrobit-backend","timestamp":"2026-10-29 12:24:20"}
+{"level":"info","message":"Connected to Redis server","service":"hrobit-backend","timestamp":"2026-10-29 12:24:20"}
+{"level":"info","message":"Database initialization & seeding completed successfully.","service":"hrobit-backend","timestamp":"2026-10-29 12:24:21"}
+{"level":"info","message":"Server successfully started on port 3000 [development]","service":"hrobit-backend","timestamp":"2026-10-29 12:24:21"}
+{"level":"info","message":"API Base URL: http://localhost:3000/api","service":"hrobit-backend","timestamp":"2026-10-29 12:24:21"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:26:21"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:26:21"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:26:21"}
+{"duration":61,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:26:21"}
+{"duration":82,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:26:21"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:26:21"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:26:21"}
+{"duration":24,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:26:21"}
+{"duration":16,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:26:21"}
+{"duration":88,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:26:21"}
+{"duration":8,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:26:21"}
+{"duration":6,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:26:21"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:26:21"}
+{"duration":8,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:26:21"}
+{"duration":5,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:26:21"}
+{"duration":4,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:26:21"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:26:23"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:26:23"}
+{"duration":4,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:26:23"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:26:23"}
+{"duration":12,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:26:23"}
+{"duration":4,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:26:23"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:26:23"}
+{"duration":13,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:26:23"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:26:23"}
+{"duration":4,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:26:23"}
+{"duration":4,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:26:23"}
+{"duration":4,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:26:23"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:26:23"}
+{"duration":7,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:26:23"}
+{"duration":14,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:26:23"}
+{"duration":7,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:26:23"}
+{"level":"debug","message":"POST /api/auth/login","service":"hrobit-backend","timestamp":"2026-10-29 12:30:59"}
+{"level":"info","message":"HROrbit profile date fields for srinagaraj.p@simplify3x.com: [] user=[]","service":"hrobit-backend","timestamp":"2026-10-29 12:30:59"}
+{"level":"info","message":"HROrbit authenticated successfully for srinagaraj.p@simplify3x.com","service":"hrobit-backend","timestamp":"2026-10-29 12:30:59"}
+{"duration":56,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:30:59"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:30:59"}
+{"duration":11,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:30:59"}
+{"level":"debug","message":"GET /api/announcements","service":"hrobit-backend","timestamp":"2026-10-29 12:31:00"}
+{"level":"debug","message":"GET /api/events","service":"hrobit-backend","timestamp":"2026-10-29 12:31:00"}
+{"level":"debug","message":"GET /api/quick-links","service":"hrobit-backend","timestamp":"2026-10-29 12:31:00"}
+{"level":"debug","message":"GET /api/hr-contacts","service":"hrobit-backend","timestamp":"2026-10-29 12:31:00"}
+{"level":"debug","message":"GET /api/kudos","service":"hrobit-backend","timestamp":"2026-10-29 12:31:00"}
+{"duration":19,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, details, category, priority, pinned, read, image,\n            ","timestamp":"2026-10-29 12:31:00"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:31:00"}
+{"level":"debug","message":"GET /api/courses","service":"hrobit-backend","timestamp":"2026-10-29 12:31:00"}
+{"duration":7,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:31:00"}
+{"level":"debug","message":"GET /api/celebrations","service":"hrobit-backend","timestamp":"2026-10-29 12:31:00"}
+{"duration":11,"level":"debug","message":"Executed query","rows":8,"service":"hrobit-backend","text":"\n      SELECT id, title, provider, category, level, duration, access, certificate, description, url,","timestamp":"2026-10-29 12:31:00"}
+{"duration":14,"level":"debug","message":"Executed query","rows":200,"service":"hrobit-backend","text":"\n      SELECT e.id, e.first_name, e.last_name, e.dob, e.join_date,\n             d.department_name, d","timestamp":"2026-10-29 12:31:00"}
+{"duration":161,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rs","timestamp":"2026-10-29 12:31:00"}
+{"duration":172,"level":"debug","message":"Executed query","rows":797,"service":"hrobit-backend","text":"\n      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email, ","timestamp":"2026-10-29 12:31:00"}
+{"duration":208,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n      SELECT id, from_name AS \"from\", to_name AS \"to\", category, message, initials, color,\n        ","timestamp":"2026-10-29 12:31:00"}
+{"duration":260,"level":"debug","message":"Executed query","rows":6,"service":"hrobit-backend","text":"\n      SELECT id, title, description, category, url, icon, placeholder, sort_order\n      FROM hcm.qu","timestamp":"2026-10-29 12:31:00"}
+{"duration":127,"level":"debug","message":"Executed query","rows":10,"service":"hrobit-backend","text":"\n      SELECT DISTINCT ON (LOWER(TRIM(holiday_name)), start_date::date)\n             id, holiday_nam","timestamp":"2026-10-29 12:31:00"}
+{"level":"debug","message":"GET /api/moods/state","service":"hrobit-backend","timestamp":"2026-10-29 12:31:01"}
+{"level":"debug","message":"GET /api/moods/team","service":"hrobit-backend","timestamp":"2026-10-29 12:31:01"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:31:01"}
+{"duration":10,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"\n    SELECT id\n    FROM hcm.employees\n    WHERE LOWER(employee_code) = ANY($1::text[])\n       OR LOW","timestamp":"2026-10-29 12:31:01"}
+{"duration":7,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:31:01"}
+{"duration":12,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"\n    SELECT id\n    FROM hcm.employees\n    WHERE LOWER(employee_code) = ANY($1::text[])\n       OR LOW","timestamp":"2026-10-29 12:31:01"}
+{"level":"debug","message":"GET /api/moods/state","service":"hrobit-backend","timestamp":"2026-10-29 12:31:01"}
+{"level":"debug","message":"GET /api/moods/team","service":"hrobit-backend","timestamp":"2026-10-29 12:31:01"}
+{"duration":8,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:31:01"}
+{"duration":15,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:31:01"}
+{"duration":20,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"\n    SELECT id\n    FROM hcm.employees\n    WHERE LOWER(employee_code) = ANY($1::text[])\n       OR LOW","timestamp":"2026-10-29 12:31:01"}
+{"duration":26,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"\n    SELECT id\n    FROM hcm.employees\n    WHERE LOWER(employee_code) = ANY($1::text[])\n       OR LOW","timestamp":"2026-10-29 12:31:01"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:31:01"}
+{"duration":3,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:31:01"}
+{"duration":6,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:31:01"}
+{"duration":2,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:31:01"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:31:04"}
+{"duration":6,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:31:04"}
+{"duration":13,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:31:04"}
+{"duration":23,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:31:04"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:31:04"}
+{"duration":4,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:31:04"}
+{"duration":7,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:31:04"}
+{"duration":9,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:31:05"}
+{"level":"debug","message":"POST /api/auth/login","service":"hrobit-backend","timestamp":"2026-10-29 12:31:29"}
+{"level":"info","message":"HROrbit profile date fields for ganesh.r@simplify3x.com: [] user=[]","service":"hrobit-backend","timestamp":"2026-10-29 12:31:29"}
+{"level":"info","message":"HROrbit authenticated successfully for ganesh.r@simplify3x.com","service":"hrobit-backend","timestamp":"2026-10-29 12:31:29"}
+{"duration":51,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:31:29"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:31:29"}
+{"duration":9,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:31:29"}
+{"level":"debug","message":"GET /api/moods/state","service":"hrobit-backend","timestamp":"2026-10-29 12:31:29"}
+{"level":"debug","message":"GET /api/moods/team","service":"hrobit-backend","timestamp":"2026-10-29 12:31:29"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:31:29"}
+{"level":"debug","message":"GET /api/announcements","service":"hrobit-backend","timestamp":"2026-10-29 12:31:29"}
+{"level":"debug","message":"GET /api/events","service":"hrobit-backend","timestamp":"2026-10-29 12:31:29"}
+{"level":"debug","message":"GET /api/quick-links","service":"hrobit-backend","timestamp":"2026-10-29 12:31:29"}
+{"duration":19,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"\n      SELECT m.id, m.mood, m.visibility, m.submitted_at, m.checkin_date,\n             ((CURRENT_TIM","timestamp":"2026-10-29 12:31:29"}
+{"level":"debug","message":"GET /api/hr-contacts","service":"hrobit-backend","timestamp":"2026-10-29 12:31:29"}
+{"duration":14,"level":"debug","message":"Executed query","rows":6,"service":"hrobit-backend","text":"\n      SELECT id, title, description, category, url, icon, placeholder, sort_order\n      FROM hcm.qu","timestamp":"2026-10-29 12:31:29"}
+{"level":"debug","message":"GET /api/kudos","service":"hrobit-backend","timestamp":"2026-10-29 12:31:29"}
+{"duration":54,"level":"debug","message":"Executed query","rows":797,"service":"hrobit-backend","text":"\n      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email, ","timestamp":"2026-10-29 12:31:29"}
+{"duration":67,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n      SELECT id, from_name AS \"from\", to_name AS \"to\", category, message, initials, color,\n        ","timestamp":"2026-10-29 12:31:29"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:31:29"}
+{"level":"debug","message":"GET /api/courses","service":"hrobit-backend","timestamp":"2026-10-29 12:31:29"}
+{"duration":106,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:31:29"}
+{"duration":108,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, details, category, priority, pinned, read, image,\n            ","timestamp":"2026-10-29 12:31:29"}
+{"duration":11,"level":"debug","message":"Executed query","rows":8,"service":"hrobit-backend","text":"\n      SELECT id, title, provider, category, level, duration, access, certificate, description, url,","timestamp":"2026-10-29 12:31:29"}
+{"duration":15,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:31:29"}
+{"level":"debug","message":"GET /api/celebrations","service":"hrobit-backend","timestamp":"2026-10-29 12:31:29"}
+{"duration":116,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rs","timestamp":"2026-10-29 12:31:29"}
+{"duration":129,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"\n      SELECT m.id, m.employee_id, m.mood, m.visibility, m.created_at, true AS identity_allowed,\n   ","timestamp":"2026-10-29 12:31:29"}
+{"level":"debug","message":"GET /api/moods/state","service":"hrobit-backend","timestamp":"2026-10-29 12:31:29"}
+{"duration":21,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:31:29"}
+{"duration":7,"level":"debug","message":"Executed query","rows":10,"service":"hrobit-backend","text":"\n      SELECT DISTINCT ON (LOWER(TRIM(holiday_name)), start_date::date)\n             id, holiday_nam","timestamp":"2026-10-29 12:31:29"}
+{"duration":8,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT mood_checkin_id, reaction, COUNT(*)::int AS count FROM hcm.mood_reactions GROUP BY mood_check","timestamp":"2026-10-29 12:31:29"}
+{"duration":7,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"\n      SELECT m.id, m.mood, m.visibility, m.submitted_at, m.checkin_date,\n             ((CURRENT_TIM","timestamp":"2026-10-29 12:31:29"}
+{"duration":11,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT SUM(COALESCE(closing_balance::numeric, 0)) AS balance \n         FROM hcm.employee_leave_balan","timestamp":"2026-10-29 12:31:29"}
+{"level":"debug","message":"GET /api/moods/team","service":"hrobit-backend","timestamp":"2026-10-29 12:31:29"}
+{"duration":4,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:31:29"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:31:29"}
+{"duration":10,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"\n      SELECT m.id, m.employee_id, m.mood, m.visibility, m.created_at, true AS identity_allowed,\n   ","timestamp":"2026-10-29 12:31:29"}
+{"duration":5,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:31:29"}
+{"duration":9,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT mood_checkin_id, reaction, COUNT(*)::int AS count FROM hcm.mood_reactions GROUP BY mood_check","timestamp":"2026-10-29 12:31:29"}
+{"duration":6,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:31:29"}
+{"duration":5,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT SUM(COALESCE(closing_balance::numeric, 0)) AS balance \n         FROM hcm.employee_leave_balan","timestamp":"2026-10-29 12:31:29"}
+{"duration":4,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:31:29"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:31:32"}
+{"duration":12,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:31:32"}
+{"duration":24,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:31:32"}
+{"duration":3,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT SUM(COALESCE(closing_balance::numeric, 0)) AS balance \n         FROM hcm.employee_leave_balan","timestamp":"2026-10-29 12:31:32"}
+{"duration":4,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:31:33"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:31:33"}
+{"duration":8,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:31:33"}
+{"duration":4,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:31:33"}
+{"duration":32,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT SUM(COALESCE(closing_balance::numeric, 0)) AS balance \n         FROM hcm.employee_leave_balan","timestamp":"2026-10-29 12:31:33"}
+{"duration":3,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:31:33"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:32:00"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:32:00"}
+{"duration":164,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:32:00"}
+{"duration":107,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:32:00"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:32:00"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:32:00"}
+{"duration":30,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:32:00"}
+{"duration":37,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:32:00"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:32:07"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:32:07"}
+{"duration":29,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:32:07"}
+{"duration":9,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:32:07"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:32:07"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:32:07"}
+{"duration":6,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:32:07"}
+{"duration":7,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:32:07"}
+{"level":"debug","message":"GET /api/events","service":"hrobit-backend","timestamp":"2026-10-29 12:32:19"}
+{"level":"debug","message":"GET /api/hr-contacts","service":"hrobit-backend","timestamp":"2026-10-29 12:32:19"}
+{"duration":59,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rs","timestamp":"2026-10-29 12:32:19"}
+{"duration":11,"level":"debug","message":"Executed query","rows":10,"service":"hrobit-backend","text":"\n      SELECT DISTINCT ON (LOWER(TRIM(holiday_name)), start_date::date)\n             id, holiday_nam","timestamp":"2026-10-29 12:32:19"}
+{"duration":96,"level":"debug","message":"Executed query","rows":797,"service":"hrobit-backend","text":"\n      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email, ","timestamp":"2026-10-29 12:32:19"}
+{"level":"debug","message":"GET /api/events","service":"hrobit-backend","timestamp":"2026-10-29 12:32:21"}
+{"level":"debug","message":"GET /api/hr-contacts","service":"hrobit-backend","timestamp":"2026-10-29 12:32:21"}
+{"duration":5,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rs","timestamp":"2026-10-29 12:32:21"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:32:21"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:32:21"}
+{"duration":15,"level":"debug","message":"Executed query","rows":10,"service":"hrobit-backend","text":"\n      SELECT DISTINCT ON (LOWER(TRIM(holiday_name)), start_date::date)\n             id, holiday_nam","timestamp":"2026-10-29 12:32:21"}
+{"duration":31,"level":"debug","message":"Executed query","rows":797,"service":"hrobit-backend","text":"\n      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email, ","timestamp":"2026-10-29 12:32:21"}
+{"level":"debug","message":"GET /api/events","service":"hrobit-backend","timestamp":"2026-10-29 12:32:21"}
+{"level":"debug","message":"GET /api/hr-contacts","service":"hrobit-backend","timestamp":"2026-10-29 12:32:21"}
+{"duration":6,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rs","timestamp":"2026-10-29 12:32:21"}
+{"duration":8,"level":"debug","message":"Executed query","rows":10,"service":"hrobit-backend","text":"\n      SELECT DISTINCT ON (LOWER(TRIM(holiday_name)), start_date::date)\n             id, holiday_nam","timestamp":"2026-10-29 12:32:21"}
+{"duration":69,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:32:21"}
+{"duration":34,"level":"debug","message":"Executed query","rows":797,"service":"hrobit-backend","text":"\n      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email, ","timestamp":"2026-10-29 12:32:21"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:32:21"}
+{"duration":98,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:32:21"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:32:21"}
+{"duration":20,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:32:21"}
+{"duration":31,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:32:21"}
+{"level":"debug","message":"GET /api/health","service":"hrobit-backend","timestamp":"2026-10-29 12:34:38"}
+{"level":"debug","message":"POST /api/auth/login","service":"hrobit-backend","timestamp":"2026-10-29 12:35:07"}
+{"level":"info","message":"HROrbit profile date fields for srinagaraj.p@simplify3x.com: [] user=[]","service":"hrobit-backend","timestamp":"2026-10-29 12:35:07"}
+{"level":"info","message":"HROrbit authenticated successfully for srinagaraj.p@simplify3x.com","service":"hrobit-backend","timestamp":"2026-10-29 12:35:07"}
+{"duration":55,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:35:07"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:35:07"}
+{"duration":9,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:35:07"}
+{"level":"debug","message":"GET /api/moods/state","service":"hrobit-backend","timestamp":"2026-10-29 12:35:08"}
+{"level":"debug","message":"GET /api/moods/team","service":"hrobit-backend","timestamp":"2026-10-29 12:35:08"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:35:08"}
+{"level":"debug","message":"GET /api/announcements","service":"hrobit-backend","timestamp":"2026-10-29 12:35:08"}
+{"level":"debug","message":"GET /api/events","service":"hrobit-backend","timestamp":"2026-10-29 12:35:08"}
+{"level":"debug","message":"GET /api/quick-links","service":"hrobit-backend","timestamp":"2026-10-29 12:35:08"}
+{"duration":26,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"\n    SELECT id\n    FROM hcm.employees\n    WHERE LOWER(employee_code) = ANY($1::text[])\n       OR LOW","timestamp":"2026-10-29 12:35:08"}
+{"level":"debug","message":"GET /api/kudos","service":"hrobit-backend","timestamp":"2026-10-29 12:35:08"}
+{"duration":7,"level":"debug","message":"Executed query","rows":6,"service":"hrobit-backend","text":"\n      SELECT id, title, description, category, url, icon, placeholder, sort_order\n      FROM hcm.qu","timestamp":"2026-10-29 12:35:08"}
+{"level":"debug","message":"GET /api/hr-contacts","service":"hrobit-backend","timestamp":"2026-10-29 12:35:08"}
+{"duration":9,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n      SELECT id, from_name AS \"from\", to_name AS \"to\", category, message, initials, color,\n        ","timestamp":"2026-10-29 12:35:08"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:35:08"}
+{"duration":30,"level":"debug","message":"Executed query","rows":797,"service":"hrobit-backend","text":"\n      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email, ","timestamp":"2026-10-29 12:35:08"}
+{"duration":39,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:35:08"}
+{"level":"debug","message":"GET /api/courses","service":"hrobit-backend","timestamp":"2026-10-29 12:35:08"}
+{"level":"debug","message":"GET /api/celebrations","service":"hrobit-backend","timestamp":"2026-10-29 12:35:08"}
+{"duration":80,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:35:08"}
+{"duration":6,"level":"debug","message":"Executed query","rows":8,"service":"hrobit-backend","text":"\n      SELECT id, title, provider, category, level, duration, access, certificate, description, url,","timestamp":"2026-10-29 12:35:08"}
+{"duration":87,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"\n    SELECT id\n    FROM hcm.employees\n    WHERE LOWER(employee_code) = ANY($1::text[])\n       OR LOW","timestamp":"2026-10-29 12:35:08"}
+{"level":"debug","message":"GET /api/moods/state","service":"hrobit-backend","timestamp":"2026-10-29 12:35:08"}
+{"duration":79,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rs","timestamp":"2026-10-29 12:35:08"}
+{"level":"debug","message":"GET /api/moods/team","service":"hrobit-backend","timestamp":"2026-10-29 12:35:08"}
+{"duration":86,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, details, category, priority, pinned, read, image,\n            ","timestamp":"2026-10-29 12:35:08"}
+{"duration":14,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:35:08"}
+{"duration":18,"level":"debug","message":"Executed query","rows":10,"service":"hrobit-backend","text":"\n      SELECT DISTINCT ON (LOWER(TRIM(holiday_name)), start_date::date)\n             id, holiday_nam","timestamp":"2026-10-29 12:35:08"}
+{"duration":22,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"\n    SELECT id\n    FROM hcm.employees\n    WHERE LOWER(employee_code) = ANY($1::text[])\n       OR LOW","timestamp":"2026-10-29 12:35:08"}
+{"duration":21,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"\n    SELECT id\n    FROM hcm.employees\n    WHERE LOWER(employee_code) = ANY($1::text[])\n       OR LOW","timestamp":"2026-10-29 12:35:08"}
+{"duration":19,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:35:08"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:35:08"}
+{"duration":7,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:35:08"}
+{"duration":5,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:35:08"}
+{"duration":5,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:35:08"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:46:05"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:46:05"}
+{"duration":57,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:46:05"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:46:05"}
+{"duration":86,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:46:05"}
+{"duration":4,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:46:05"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:46:05"}
+{"duration":17,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:46:05"}
+{"client":{"_activeQuery":null,"_connected":true,"_connecting":false,"_connectionCallback":null,"_connectionError":false,"_connectionTimeoutMillis":30000,"_ended":false,"_ending":true,"_events":{},"_eventsCount":1,"_poolUseCount":1,"_queryQueue":[],"_queryable":false,"_sentQueryQueue":[],"_txStatus":"I","_types":{"_types":{"arrayParser":{},"builtins":{"ABSTIME":702,"ACLITEM":1033,"BIT":1560,"BOOL":16,"BPCHAR":1042,"BYTEA":17,"CHAR":18,"CID":29,"CIDR":650,"CIRCLE":718,"DATE":1082,"FLOAT4":700,"FLOAT8":701,"GTSVECTOR":3642,"INET":869,"INT2":21,"INT4":23,"INT8":20,"INTERVAL":1186,"JSON":114,"JSONB":3802,"MACADDR":829,"MACADDR8":774,"MONEY":790,"NUMERIC":1700,"OID":26,"PATH":602,"PG_DEPENDENCIES":3402,"PG_LSN":3220,"PG_NDISTINCT":3361,"PG_NODE_TREE":194,"POLYGON":604,"REFCURSOR":1790,"REGCLASS":2205,"REGCONFIG":3734,"REGDICTIONARY":3769,"REGNAMESPACE":4089,"REGOPER":2203,"REGOPERATOR":2204,"REGPROC":24,"REGPROCEDURE":2202,"REGROLE":4096,"REGTYPE":2206,"RELTIME":703,"SMGR":210,"TEXT":25,"TID":27,"TIME":1083,"TIMESTAMP":1114,"TIMESTAMPTZ":1184,"TIMETZ":1266,"TINTERVAL":704,"TSQUERY":3615,"TSVECTOR":3614,"TXID_SNAPSHOT":2970,"UUID":2950,"VARBIT":1562,"VARCHAR":1043,"XID":28,"XML":142}},"binary":{},"text":{}},"binary":false,"connection":{"_connecting":true,"_emitMessage":false,"_ending":false,"_events":{"end":[null,null]},"_eventsCount":23,"_keepAlive":false,"_keepAliveInitialDelayMillis":0,"parsedStatements":{},"ssl":false,"sslNegotiation":"postgres","stream":{"_closeAfterHandlingError":false,"_events":{"end":[null,null]},"_eventsCount":4,"_hadError":false,"_host":null,"_parent":null,"_pendingData":null,"_pendingEncoding":"","_readableState":{"awaitDrainWriters":null,"buffer":[],"bufferIndex":0,"highWaterMark":16384,"length":0,"pipes":[]},"_server":null,"_sockname":null,"_writableState":{"bufferedIndex":0,"corked":0,"highWaterMark":16384,"length":0,"pendingcb":0,"writelen":0},"allowHalfOpen":false,"connecting":false,"server":null},"submittedNamedStatements":{}},"connectionParameters":{"binary":false,"client_encoding":"","connect_timeout":30,"database":"defaultdb","host":"10.0.74.8","idle_in_transaction_session_timeout":false,"isDomainSocket":false,"lock_timeout":false,"port":5432,"query_timeout":false,"ssl":false,"statement_timeout":false,"user":"admin"},"connectionTimeoutHandle":{"_destroyed":true,"_idleNext":null,"_idlePrev":null,"_idleStart":1305839,"_idleTimeout":-1,"_onTimeout":null,"_repeat":null},"database":"defaultdb","enableChannelBinding":false,"hasExecuted":true,"host":"10.0.74.8","pipeline":false,"port":5432,"processID":103966,"readyForQuery":true,"saslSession":null,"scramMaxIterations":100000,"secretKey":981516660,"ssl":false,"sslNegotiation":"postgres","user":"admin"},"code":"ECONNRESET","errno":-4077,"level":"error","message":"Unexpected error on idle PostgreSQL client read ECONNRESET","service":"hrobit-backend","stack":"Error: read ECONNRESET\n    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)","syscall":"read","timestamp":"2026-10-29 12:46:32"}
+{"client":{"_activeQuery":null,"_connected":true,"_connecting":false,"_connectionCallback":null,"_connectionError":false,"_connectionTimeoutMillis":30000,"_ended":false,"_ending":true,"_events":{},"_eventsCount":1,"_poolUseCount":3,"_queryQueue":[],"_queryable":false,"_sentQueryQueue":[],"_txStatus":"I","_types":{"_types":{"arrayParser":{},"builtins":{"ABSTIME":702,"ACLITEM":1033,"BIT":1560,"BOOL":16,"BPCHAR":1042,"BYTEA":17,"CHAR":18,"CID":29,"CIDR":650,"CIRCLE":718,"DATE":1082,"FLOAT4":700,"FLOAT8":701,"GTSVECTOR":3642,"INET":869,"INT2":21,"INT4":23,"INT8":20,"INTERVAL":1186,"JSON":114,"JSONB":3802,"MACADDR":829,"MACADDR8":774,"MONEY":790,"NUMERIC":1700,"OID":26,"PATH":602,"PG_DEPENDENCIES":3402,"PG_LSN":3220,"PG_NDISTINCT":3361,"PG_NODE_TREE":194,"POLYGON":604,"REFCURSOR":1790,"REGCLASS":2205,"REGCONFIG":3734,"REGDICTIONARY":3769,"REGNAMESPACE":4089,"REGOPER":2203,"REGOPERATOR":2204,"REGPROC":24,"REGPROCEDURE":2202,"REGROLE":4096,"REGTYPE":2206,"RELTIME":703,"SMGR":210,"TEXT":25,"TID":27,"TIME":1083,"TIMESTAMP":1114,"TIMESTAMPTZ":1184,"TIMETZ":1266,"TINTERVAL":704,"TSQUERY":3615,"TSVECTOR":3614,"TXID_SNAPSHOT":2970,"UUID":2950,"VARBIT":1562,"VARCHAR":1043,"XID":28,"XML":142}},"binary":{},"text":{}},"binary":false,"connection":{"_connecting":true,"_emitMessage":false,"_ending":false,"_events":{"end":[null,null]},"_eventsCount":23,"_keepAlive":false,"_keepAliveInitialDelayMillis":0,"parsedStatements":{},"ssl":false,"sslNegotiation":"postgres","stream":{"_closeAfterHandlingError":false,"_events":{"end":[null,null]},"_eventsCount":4,"_hadError":false,"_host":null,"_parent":null,"_pendingData":null,"_pendingEncoding":"","_readableState":{"awaitDrainWriters":null,"buffer":[],"bufferIndex":0,"highWaterMark":16384,"length":0,"pipes":[]},"_server":null,"_sockname":null,"_writableState":{"bufferedIndex":0,"corked":0,"highWaterMark":16384,"length":0,"pendingcb":0,"writelen":0},"allowHalfOpen":false,"connecting":false,"server":null},"submittedNamedStatements":{}},"connectionParameters":{"binary":false,"client_encoding":"","connect_timeout":30,"database":"defaultdb","host":"10.0.74.8","idle_in_transaction_session_timeout":false,"isDomainSocket":false,"lock_timeout":false,"port":5432,"query_timeout":false,"ssl":false,"statement_timeout":false,"user":"admin"},"connectionTimeoutHandle":{"_destroyed":true,"_idleNext":null,"_idlePrev":null,"_idleStart":1305861,"_idleTimeout":-1,"_onTimeout":null,"_repeat":null},"database":"defaultdb","enableChannelBinding":false,"hasExecuted":true,"host":"10.0.74.8","pipeline":false,"port":5432,"processID":103967,"readyForQuery":true,"saslSession":null,"scramMaxIterations":100000,"secretKey":-1482605897,"ssl":false,"sslNegotiation":"postgres","user":"admin"},"code":"ECONNRESET","errno":-4077,"level":"error","message":"Unexpected error on idle PostgreSQL client read ECONNRESET","service":"hrobit-backend","stack":"Error: read ECONNRESET\n    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)","syscall":"read","timestamp":"2026-10-29 12:46:33"}
+{"level":"warn","message":"Redis client error: read ECONNRESET","service":"hrobit-backend","timestamp":"2026-10-29 12:46:33"}
+{"level":"info","message":"Connected to Redis server","service":"hrobit-backend","timestamp":"2026-10-29 12:46:33"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"duration":42,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"duration":57,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:46:35"}
+{"duration":7,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"duration":11,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/auth/me","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"duration":8,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/announcements","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"duration":11,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:46:35"}
+{"duration":9,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:46:35"}
+{"duration":6,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT SUM(COALESCE(closing_balance::numeric, 0)) AS balance \n         FROM hcm.employee_leave_balan","timestamp":"2026-10-29 12:46:35"}
+{"duration":8,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/events","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/quick-links","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/hr-contacts","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/kudos","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"duration":39,"level":"debug","message":"Executed query","rows":6,"service":"hrobit-backend","text":"\n      SELECT id, title, description, category, url, icon, placeholder, sort_order\n      FROM hcm.qu","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/courses","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"duration":55,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rs","timestamp":"2026-10-29 12:46:35"}
+{"duration":41,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:46:35"}
+{"duration":4,"level":"debug","message":"Executed query","rows":8,"service":"hrobit-backend","text":"\n      SELECT id, title, provider, category, level, duration, access, certificate, description, url,","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/dashboard/summary","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"duration":10,"level":"debug","message":"Executed query","rows":10,"service":"hrobit-backend","text":"\n      SELECT DISTINCT ON (LOWER(TRIM(holiday_name)), start_date::date)\n             id, holiday_nam","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/auth/me","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"duration":7,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos WHERE LOWER(to_name) = LOWER($1) OR LOWER(to_name) LIKE LOWER($2)","timestamp":"2026-10-29 12:46:35"}
+{"duration":101,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, details, category, priority, pinned, read, image,\n            ","timestamp":"2026-10-29 12:46:35"}
+{"duration":9,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 12:46:35"}
+{"duration":8,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/quick-links","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/faqs","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"duration":17,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT SUM(COALESCE(closing_balance::numeric, 0)) AS balance \n         FROM hcm.employee_leave_balan","timestamp":"2026-10-29 12:46:35"}
+{"duration":20,"level":"debug","message":"Executed query","rows":6,"service":"hrobit-backend","text":"\n      SELECT id, title, description, category, url, icon, placeholder, sort_order\n      FROM hcm.qu","timestamp":"2026-10-29 12:46:35"}
+{"duration":24,"level":"debug","message":"Executed query","rows":6,"service":"hrobit-backend","text":"\n      SELECT id, category, question, answer\n      FROM hcm.faqs\n      ORDER BY id ASC\n    ","timestamp":"2026-10-29 12:46:35"}
+{"duration":13,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 12:46:35"}
+{"duration":21,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/courses","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/games","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/employees","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/celebrations","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"duration":10,"level":"debug","message":"Executed query","rows":8,"service":"hrobit-backend","text":"\n      SELECT id, title, provider, category, level, duration, access, certificate, description, url,","timestamp":"2026-10-29 12:46:35"}
+{"duration":9,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"SELECT id, title, subtitle, difficulty, description, icon, color, available FROM hcm.games WHERE ava","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/events","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/announcements","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"duration":153,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n      SELECT id, from_name AS \"from\", to_name AS \"to\", category, message, initials, color,\n        ","timestamp":"2026-10-29 12:46:35"}
+{"duration":42,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rs","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/faqs","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"duration":44,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, details, category, priority, pinned, read, image,\n            ","timestamp":"2026-10-29 12:46:35"}
+{"duration":10,"level":"debug","message":"Executed query","rows":10,"service":"hrobit-backend","text":"\n      SELECT DISTINCT ON (LOWER(TRIM(holiday_name)), start_date::date)\n             id, holiday_nam","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/games","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/kudos","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"duration":27,"level":"debug","message":"Executed query","rows":200,"service":"hrobit-backend","text":"\n      SELECT e.id, e.first_name, e.last_name, e.dob, e.join_date,\n             d.department_name, d","timestamp":"2026-10-29 12:46:35"}
+{"duration":24,"level":"debug","message":"Executed query","rows":6,"service":"hrobit-backend","text":"\n      SELECT id, category, question, answer\n      FROM hcm.faqs\n      ORDER BY id ASC\n    ","timestamp":"2026-10-29 12:46:35"}
+{"duration":190,"level":"debug","message":"Executed query","rows":797,"service":"hrobit-backend","text":"\n      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email, ","timestamp":"2026-10-29 12:46:35"}
+{"duration":28,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"SELECT id, title, subtitle, difficulty, description, icon, color, available FROM hcm.games WHERE ava","timestamp":"2026-10-29 12:46:35"}
+{"duration":51,"level":"debug","message":"Executed query","rows":728,"service":"hrobit-backend","text":"\n      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.dob, e.join_date","timestamp":"2026-10-29 12:46:35"}
+{"duration":42,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n      SELECT id, from_name AS \"from\", to_name AS \"to\", category, message, initials, color,\n        ","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/hr-contacts","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/celebrations","service":"hrobit-backend","timestamp":"2026-10-29 12:46:35"}
+{"duration":30,"level":"debug","message":"Executed query","rows":797,"service":"hrobit-backend","text":"\n      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email, ","timestamp":"2026-10-29 12:46:35"}
+{"level":"debug","message":"GET /api/employees","service":"hrobit-backend","timestamp":"2026-10-29 12:46:36"}
+{"level":"debug","message":"POST /api/upload","service":"hrobit-backend","timestamp":"2026-10-29 12:50:08"}
+{"level":"error","message":"Unhandled API Error: The request signature we calculated does not match the signature you provided. Check your key and signing method.","path":"/api/upload","service":"hrobit-backend","stack":"SignatureDoesNotMatch: The request signature we calculated does not match the signature you provided. Check your key and signing method.\n    at ProtocolLib.getErrorSchemaOrThrowBaseException (C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@aws-sdk\\core\\dist-cjs\\submodules\\protocols\\index.js:79:67)\n    at S3RestXmlProtocol.handleError (C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@aws-sdk\\core\\dist-cjs\\submodules\\protocols\\index.js:1341:65)\n    at S3RestXmlProtocol.deserializeResponse (C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@smithy\\core\\dist-cjs\\submodules\\protocols\\index.js:406:24)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@smithy\\core\\dist-cjs\\submodules\\schema\\index.js:23:24\n    at async C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@aws-sdk\\middleware-sdk-s3\\dist-cjs\\submodules\\s3\\index.js:366:20\n    at async C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@smithy\\core\\dist-cjs\\submodules\\retry\\index.js:175:50\n    at async C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@aws-sdk\\checksums\\dist-cjs\\submodules\\flexible-checksums\\index.js:234:24\n    at async C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@aws-sdk\\middleware-sdk-s3\\dist-cjs\\submodules\\s3\\index.js:62:28\n    at async C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@aws-sdk\\middleware-sdk-s3\\dist-cjs\\submodules\\s3\\index.js:89:20","timestamp":"2026-10-29 12:50:09"}
+{"level":"debug","message":"POST /api/upload","service":"hrobit-backend","timestamp":"2026-10-29 12:50:13"}
+{"level":"error","message":"Unhandled API Error: The request signature we calculated does not match the signature you provided. Check your key and signing method.","path":"/api/upload","service":"hrobit-backend","stack":"SignatureDoesNotMatch: The request signature we calculated does not match the signature you provided. Check your key and signing method.\n    at ProtocolLib.getErrorSchemaOrThrowBaseException (C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@aws-sdk\\core\\dist-cjs\\submodules\\protocols\\index.js:79:67)\n    at S3RestXmlProtocol.handleError (C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@aws-sdk\\core\\dist-cjs\\submodules\\protocols\\index.js:1341:65)\n    at S3RestXmlProtocol.deserializeResponse (C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@smithy\\core\\dist-cjs\\submodules\\protocols\\index.js:406:24)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@smithy\\core\\dist-cjs\\submodules\\schema\\index.js:23:24\n    at async C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@aws-sdk\\middleware-sdk-s3\\dist-cjs\\submodules\\s3\\index.js:366:20\n    at async C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@smithy\\core\\dist-cjs\\submodules\\retry\\index.js:175:50\n    at async C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@aws-sdk\\checksums\\dist-cjs\\submodules\\flexible-checksums\\index.js:234:24\n    at async C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@aws-sdk\\middleware-sdk-s3\\dist-cjs\\submodules\\s3\\index.js:62:28\n    at async C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@aws-sdk\\middleware-sdk-s3\\dist-cjs\\submodules\\s3\\index.js:89:20","timestamp":"2026-10-29 12:50:13"}
+{"level":"debug","message":"POST /api/upload","service":"hrobit-backend","timestamp":"2026-10-29 12:50:18"}
+{"level":"error","message":"Unhandled API Error: The request signature we calculated does not match the signature you provided. Check your key and signing method.","path":"/api/upload","service":"hrobit-backend","stack":"SignatureDoesNotMatch: The request signature we calculated does not match the signature you provided. Check your key and signing method.\n    at ProtocolLib.getErrorSchemaOrThrowBaseException (C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@aws-sdk\\core\\dist-cjs\\submodules\\protocols\\index.js:79:67)\n    at S3RestXmlProtocol.handleError (C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@aws-sdk\\core\\dist-cjs\\submodules\\protocols\\index.js:1341:65)\n    at S3RestXmlProtocol.deserializeResponse (C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@smithy\\core\\dist-cjs\\submodules\\protocols\\index.js:406:24)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@smithy\\core\\dist-cjs\\submodules\\schema\\index.js:23:24\n    at async C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@aws-sdk\\middleware-sdk-s3\\dist-cjs\\submodules\\s3\\index.js:366:20\n    at async C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@smithy\\core\\dist-cjs\\submodules\\retry\\index.js:175:50\n    at async C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@aws-sdk\\checksums\\dist-cjs\\submodules\\flexible-checksums\\index.js:234:24\n    at async C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@aws-sdk\\middleware-sdk-s3\\dist-cjs\\submodules\\s3\\index.js:62:28\n    at async C:\\Users\\srinagaraj.p\\Desktop\\Hr orbit\\Dashboard-backend\\node_modules\\@aws-sdk\\middleware-sdk-s3\\dist-cjs\\submodules\\s3\\index.js:89:20","timestamp":"2026-10-29 12:50:18"}
+{"level":"info","message":"Initializing database tables in schema hcm...","service":"hrobit-backend","timestamp":"2026-10-29 12:54:31"}
+{"level":"info","message":"Database initialization & seeding completed successfully.","service":"hrobit-backend","timestamp":"2026-10-29 12:54:31"}
+{"level":"info","message":"Server successfully started on port 3000 [development]","service":"hrobit-backend","timestamp":"2026-10-29 12:54:31"}
+{"level":"info","message":"API Base URL: http://localhost:3000/api","service":"hrobit-backend","timestamp":"2026-10-29 12:54:31"}
+{"level":"info","message":"Connected to Redis server","service":"hrobit-backend","timestamp":"2026-10-29 12:54:31"}

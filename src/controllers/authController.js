@@ -33,7 +33,7 @@ function birthDate(user) {
 function joiningDate(user) {
   if (!user || typeof user !== 'object') return null;
 
-  const dateKeys = ['joindate', 'joiningdate', 'dateofjoining', 'datejoined', 'onboardingdate', 'hiredate', 'startdate'];
+  const dateKeys = ['doj', 'joindate', 'joiningdate', 'dateofjoin', 'dateofjoining', 'datejoined', 'onboardingdate', 'hiredate', 'employmentstartdate', 'startdate'];
   for (const [key, value] of Object.entries(user)) {
     const normalizedKey = key.toLowerCase().replace(/[^a-z]/g, '');
     if (value && dateKeys.some((dateKey) => normalizedKey === dateKey || normalizedKey.includes(dateKey))) {
@@ -45,6 +45,21 @@ function joiningDate(user) {
   for (const value of Object.values(user)) {
     if (value && typeof value === 'object') {
       const nested = joiningDate(value);
+      if (nested) return nested;
+    }
+  }
+  return null;
+}
+
+function locationValue(user) {
+  if (!user || typeof user !== 'object') return null;
+  const locationKeys = ['location', 'workLocation', 'work_location', 'officeLocation', 'office_location', 'locationName', 'location_name', 'city'];
+  for (const key of locationKeys) {
+    if (typeof user[key] === 'string' && user[key].trim()) return user[key].trim();
+  }
+  for (const value of Object.values(user)) {
+    if (value && typeof value === 'object') {
+      const nested = locationValue(value);
       if (nested) return nested;
     }
   }
@@ -257,6 +272,8 @@ exports.login = async (req, res, next) => {
         dob: birthDate(hrorbitUser) || birthDate(hrorbitPayload) || (isSrinagaraj ? '2006-03-13' : null),
         birthday: birthDate(hrorbitUser) || birthDate(hrorbitPayload) || (isSrinagaraj ? '2006-03-13' : null),
         joined: joiningDate(hrorbitUser) || joiningDate(hrorbitPayload),
+        location: locationValue(hrorbitUser) || locationValue(hrorbitPayload),
+        team: hrorbitUser?.team || hrorbitUser?.department || hrorbitUser?.departmentName || hrorbitUser?.department_name || 'General',
       };
     } else {
       return res.status(401).json({
@@ -292,7 +309,7 @@ exports.getMe = async (req, res, next) => {
               e.phone, e.dob::date AS dob, e.join_date::date AS join_date, e.profile_picture_url,
               to_jsonb(e) AS employee_data,
               d.department_name, des.designation_name, o.organization_name,
-              p.bio, p.interests, p.cover_url, p.location AS custom_location, p.role_title AS custom_role
+              p.bio, p.interests, p.cover_url, p.avatar_url, p.location AS custom_location, p.role_title AS custom_role
        FROM hcm.employees e
        LEFT JOIN hcm.departments d ON e.department_id = d.id
        LEFT JOIN hcm.designations des ON e.designation_id = des.id
@@ -325,12 +342,16 @@ exports.getMe = async (req, res, next) => {
           dob: birthDate(req.user) || (isSrinagaraj ? '2006-03-13' : null),
           birthday: birthDate(req.user) || (isSrinagaraj ? '2006-03-13' : null),
           joined: req.user?.joined || req.user?.join_date || req.user?.joiningDate || joiningDate(req.user) || null,
+          location: req.user?.location || locationValue(req.user) || null,
+          team: req.user?.team || req.user?.department || 'General',
           role: isGrantedAdmin ? 'HR Admin' : 'Employee',
           access_role: isGrantedAdmin ? 'HR Admin' : 'Employee',
           employmentType: isSrinagaraj ? 'Intern' : (profile.employmentType || 'Employee'),
           jobTitle: isSrinagaraj ? 'Software Engineer (Intern)' : (profile.jobTitle || 'Employee'),
           designation: isSrinagaraj ? 'Software Engineer (Intern)' : (profile.jobTitle || 'Employee'),
           department: req.user?.department || 'General',
+          avatar: req.user?.avatar || req.user?.avatar_url || req.user?.profile_picture_url || req.user?.profilePictureUrl || req.user?.profilePicture || req.user?.photoUrl || req.user?.photo || null,
+          cover: req.user?.cover || req.user?.cover_url || req.user?.coverUrl || null,
         },
       });
     }
@@ -366,7 +387,7 @@ exports.getMe = async (req, res, next) => {
       interests: row.interests || ['Design Systems', 'React & TypeScript', 'PostgreSQL', 'User Experience', 'Cloud'],
       initials,
       color: 'blue',
-      avatar: row.profile_picture_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&h=400&q=85',
+      avatar: row.avatar_url || row.profile_picture_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&h=400&q=85',
       cover: row.cover_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&h=400&q=85',
     };
 
