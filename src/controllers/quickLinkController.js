@@ -9,11 +9,14 @@ exports.getAllQuickLinks = async (req, res, next) => {
     `);
 
     const data = result.rows.map(row => {
-      const isLeaveManagement = String(row.title || '').trim().toLowerCase() === 'leave management';
+      const normalizedTitle = String(row.title || '').trim().toLowerCase();
+      const isHROrbitLink = normalizedTitle === 'hrobit portal' || normalizedTitle === 'hr orbit';
       return {
         ...row,
         id: String(row.id),
-        ...(isLeaveManagement ? {
+        ...(isHROrbitLink ? {
+          title: 'HR orbit',
+          description: 'Open HR orbit',
           url: 'https://hrorbit.simplify3x.com/login',
           placeholder: false,
         } : {}),

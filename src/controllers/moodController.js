@@ -13,9 +13,32 @@ const SUPPORT_MESSAGES = new Set([
   "It's okay to have difficult days. Be kind to yourself 🌈",
 ]);
 
-function employeeId(req) {
+async function employeeId(req) {
   const id = Number(req.user?.id);
-  return Number.isInteger(id) && id > 0 ? id : null;
+  if (Number.isInteger(id) && id > 0) return id;
+
+  const identities = [
+    req.user?.employee_code,
+    req.user?.employeeCode,
+    req.user?.employee_id,
+    req.user?.employeeId,
+    req.user?.email,
+    req.user?.official_email,
+    req.user?.personal_email,
+  ]
+    .map((value) => String(value || '').trim().toLowerCase())
+    .filter(Boolean);
+  if (identities.length === 0) return null;
+
+  const result = await query(`
+    SELECT id
+    FROM hcm.employees
+    WHERE LOWER(employee_code) = ANY($1::text[])
+       OR LOWER(official_email) = ANY($1::text[])
+       OR LOWER(personal_email) = ANY($1::text[])
+    LIMIT 1
+  `, [identities]);
+  return result.rows[0]?.id || null;
 }
 
 function cleanText(value, max = 500) {
@@ -83,7 +106,7 @@ function moodState(row, selectedEmployeeIds = []) {
 
 exports.getMoodState = async (req, res, next) => {
   try {
-    const id = employeeId(req);
+    const id = await employeeId(req);
     if (!id) return res.status(403).json({ success: false, message: 'A local employee identity is required.' });
     const own = await query(`
       SELECT m.id, m.mood, m.visibility, m.submitted_at, m.checkin_date,
@@ -105,7 +128,7 @@ exports.getMoodState = async (req, res, next) => {
 exports.saveMood = async (req, res, next) => {
   const client = await require('../config/db').pool.connect();
   try {
-    const id = employeeId(req);
+    const id = await employeeId(req);
     const mood = String(req.body?.mood || '').toLowerCase();
     const visibility = String(req.body?.visibility || 'private').toLowerCase();
     const selectedIds = Array.isArray(req.body?.selectedEmployeeIds) ? [...new Set(req.body.selectedEmployeeIds.map(Number).filter((value) => Number.isInteger(value) && value > 0))] : [];
@@ -167,7 +190,7 @@ exports.saveMood = async (req, res, next) => {
 
 exports.getTeamMoods = async (req, res, next) => {
   try {
-    const id = employeeId(req);
+    const id = await employeeId(req);
     if (!id) return res.status(403).json({ success: false, message: 'A local employee identity is required.' });
     const moods = await query(`
       SELECT m.id, m.employee_id, m.mood, m.visibility, m.created_at, true AS identity_allowed,
@@ -191,7 +214,7 @@ exports.getTeamMoods = async (req, res, next) => {
 
 exports.addReaction = async (req, res, next) => {
   try {
-    const sender = employeeId(req); const moodId = Number(req.params.id); const reaction = String(req.body?.reaction || '');
+    const sender = await employeeId(req); const moodId = Number(req.params.id); const reaction = String(req.body?.reaction || '');
     if (!sender || !REACTIONS.has(reaction) || !(await moodVisibleTo(sender, moodId))) return res.status(400).json({ success: false, message: 'That reaction is not available.' });
     const owner = await query('SELECT employee_id FROM hcm.mood_checkins WHERE id = $1', [moodId]);
     if (!owner.rows[0] || owner.rows[0].employee_id === sender) return res.status(400).json({ success: false, message: 'You cannot react to your own mood.' });
@@ -205,7 +228,7 @@ exports.addReaction = async (req, res, next) => {
 
 exports.sendMessage = async (req, res, next) => {
   try {
-    const sender = employeeId(req); const moodId = Number(req.params.id); const kind = req.body?.kind === 'support' ? 'support' : 'celebration';
+    const sender = await employeeId(req); const moodId = Number(req.params.id); const kind = req.body?.kind === 'support' ? 'support' : 'celebration';
     const message = cleanText(req.body?.message);
     if (!sender || !message || message.length > 500 || !(await moodVisibleTo(sender, moodId))) return res.status(400).json({ success: false, message: 'Enter a valid message for a shared mood.' });
     const owner = await query('SELECT employee_id, mood FROM hcm.mood_checkins WHERE id = $1', [moodId]);
@@ -220,7 +243,7 @@ exports.sendMessage = async (req, res, next) => {
 
 exports.getMessages = async (req, res, next) => {
   try {
-    const id = employeeId(req);
+    const id = await employeeId(req);
     if (!id) return res.status(403).json({ success: false, message: 'A local employee identity is required.' });
     const messages = await query(`
       SELECT m.id, m.kind, m.message, m.offer_to_chat, m.chat_status, m.created_at,
@@ -243,7 +266,7 @@ exports.getMessages = async (req, res, next) => {
 
 exports.respondToChatOffer = async (req, res, next) => {
   try {
-    const recipient = employeeId(req); const status = String(req.body?.status || '');
+    const recipient = await employeeId(req); const status = String(req.body?.status || '');
     if (!recipient || !['accepted', 'declined'].includes(status)) return res.status(400).json({ success: false, message: 'Invalid chat response.' });
     const result = await query('UPDATE hcm.mood_messages SET chat_status = $1 WHERE id = $2 AND recipient_id = $3 RETURNING sender_id', [status, req.params.id, recipient]);
     if (!result.rowCount) return res.status(404).json({ success: false, message: 'Message not found.' });

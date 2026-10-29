@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const logger = require('../config/logger');
+const { bucketName, region } = require('../config/s3');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
@@ -28,7 +29,11 @@ function isAdminRole(role) {
   return ['admin', 'hr admin'].includes(String(role || '').trim().toLowerCase());
 }
 
-const MAX_EVENT_IMAGE_BYTES = 5 * 1024 * 1024;
+function hasAdminAccess(user) {
+  return isAdminRole(user?.access_role) || isAdminRole(user?.role);
+}
+
+const MAX_EVENT_IMAGE_BYTES = 7 * 1024 * 1024;
 const EVENT_IMAGE_ASPECT_RATIO = 16 / 9;
 const EVENT_IMAGE_ASPECT_TOLERANCE = 0.01;
 const EVENT_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -41,10 +46,7 @@ function getImageDimensions(buffer, mimeType) {
   if (mimeType === 'image/webp' && buffer.length >= 30 && buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP') {
     const format = buffer.toString('ascii', 12, 16);
     if (format === 'VP8X') {
-      return {
-        width: 1 + buffer.readUIntLE(24, 3),
-        height: 1 + buffer.readUIntLE(27, 3),
-      };
+      return { width: 1 + buffer.readUIntLE(24, 3), height: 1 + buffer.readUIntLE(27, 3) };
     }
     if (format === 'VP8L' && buffer.length >= 25) {
       return {
@@ -76,15 +78,19 @@ function getImageDimensions(buffer, mimeType) {
 
 function validateEventImage(image) {
   if (!image) return null;
-  const match = String(image).match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
+  const imageValue = String(image);
+  const escapedBucket = String(bucketName).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escapedRegion = String(region).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const s3UrlPattern = new RegExp(`^https://${escapedBucket}\\.s3\\.${escapedRegion}\\.amazonaws\\.com/uploads/[^\\s]+$`);
+  if (s3UrlPattern.test(imageValue)) return null;
+
+  const match = imageValue.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
   if (!match || !EVENT_IMAGE_TYPES.has(match[1])) {
     return 'Event photos must be JPG, PNG, or WebP images.';
   }
 
   const buffer = Buffer.from(match[2], 'base64');
-  if (buffer.length > MAX_EVENT_IMAGE_BYTES) {
-    return 'Event photos must be 5 MB or smaller.';
-  }
+  if (buffer.length > MAX_EVENT_IMAGE_BYTES) return 'Event photos must be 7 MB or smaller.';
 
   const dimensions = getImageDimensions(buffer, match[1]);
   const aspectRatio = dimensions ? dimensions.width / dimensions.height : 0;
@@ -95,18 +101,12 @@ function validateEventImage(image) {
 }
 
 function requireAdminForEventImage(req, res, next) {
-  if (req.body?.image && !isAdminRole(req.user?.role)) {
+  if (req.body?.image && !hasAdminAccess(req.user)) {
     return res.status(403).json({ success: false, message: 'Only admins can upload upcoming event photos.' });
   }
   const imageError = validateEventImage(req.body?.image);
-  if (imageError) {
-    return res.status(400).json({ success: false, message: imageError });
-  }
+  if (imageError) return res.status(400).json({ success: false, message: imageError });
   return next();
 }
 
-module.exports = {
-  authenticate,
-  generateToken,
-  requireAdminForEventImage,
-};
+module.exports = { authenticate, generateToken, requireAdminForEventImage };
