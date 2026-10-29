@@ -8009,3 +8009,61 @@
 {"level":"info","message":"Database initialization & seeding completed successfully.","service":"hrobit-backend","timestamp":"2026-10-27 18:21:26"}
 {"level":"info","message":"Server successfully started on port 3000 [development]","service":"hrobit-backend","timestamp":"2026-10-27 18:21:26"}
 {"level":"info","message":"API Base URL: http://localhost:3000/api","service":"hrobit-backend","timestamp":"2026-10-27 18:21:26"}
+{"level":"info","message":"Connected to Redis server","service":"hrobit-backend","timestamp":"2026-10-29 10:59:29"}
+{"level":"info","message":"Initializing database tables in schema hcm...","service":"hrobit-backend","timestamp":"2026-10-29 10:59:29"}
+{"level":"info","message":"Database initialization & seeding completed successfully.","service":"hrobit-backend","timestamp":"2026-10-29 10:59:29"}
+{"level":"info","message":"Server successfully started on port 3000 [development]","service":"hrobit-backend","timestamp":"2026-10-29 10:59:29"}
+{"level":"info","message":"API Base URL: http://localhost:3000/api","service":"hrobit-backend","timestamp":"2026-10-29 10:59:29"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 11:01:37"}
+{"level":"debug","message":"GET /api/events","service":"hrobit-backend","timestamp":"2026-10-29 11:01:37"}
+{"level":"debug","message":"GET /api/hr-contacts","service":"hrobit-backend","timestamp":"2026-10-29 11:01:37"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 11:01:37"}
+{"duration":54,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 11:01:37"}
+{"duration":51,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 11:01:37"}
+{"duration":61,"level":"debug","message":"Executed query","rows":797,"service":"hrobit-backend","text":"\n      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email, ","timestamp":"2026-10-29 11:01:37"}
+{"level":"debug","message":"GET /api/profile","service":"hrobit-backend","timestamp":"2026-10-29 11:01:37"}
+{"duration":74,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rs","timestamp":"2026-10-29 11:01:37"}
+{"level":"debug","message":"GET /api/notifications","service":"hrobit-backend","timestamp":"2026-10-29 11:01:37"}
+{"level":"debug","message":"GET /api/hr-contacts","service":"hrobit-backend","timestamp":"2026-10-29 11:01:37"}
+{"duration":6,"level":"debug","message":"Executed query","rows":10,"service":"hrobit-backend","text":"\n      SELECT DISTINCT ON (LOWER(TRIM(holiday_name)), start_date::date)\n             id, holiday_nam","timestamp":"2026-10-29 11:01:37"}
+{"duration":23,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n          SELECT id, title, detail, type, read, time, created_at\n          FROM hcm.notifications\n ","timestamp":"2026-10-29 11:01:37"}
+{"duration":29,"level":"debug","message":"Executed query","rows":0,"service":"hrobit-backend","text":"SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,\n       ","timestamp":"2026-10-29 11:01:37"}
+{"duration":29,"level":"debug","message":"Executed query","rows":797,"service":"hrobit-backend","text":"\n      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email, ","timestamp":"2026-10-29 11:01:37"}
+{"level":"debug","message":"GET /api/events","service":"hrobit-backend","timestamp":"2026-10-29 11:01:37"}
+{"duration":6,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rs","timestamp":"2026-10-29 11:01:37"}
+{"duration":9,"level":"debug","message":"Executed query","rows":10,"service":"hrobit-backend","text":"\n      SELECT DISTINCT ON (LOWER(TRIM(holiday_name)), start_date::date)\n             id, holiday_nam","timestamp":"2026-10-29 11:01:37"}
+{"level":"debug","message":"GET /api/games","service":"hrobit-backend","timestamp":"2026-10-29 11:01:59"}
+{"duration":34,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"SELECT id, title, subtitle, difficulty, description, icon, color, available FROM hcm.games WHERE ava","timestamp":"2026-10-29 11:01:59"}
+{"level":"debug","message":"GET /api/daily-games/champions?period=all","service":"hrobit-backend","timestamp":"2026-10-29 11:01:59"}
+{"level":"debug","message":"GET /api/daily-games","service":"hrobit-backend","timestamp":"2026-10-29 11:01:59"}
+{"level":"debug","message":"GET /api/daily-games/celebrations","service":"hrobit-backend","timestamp":"2026-10-29 11:01:59"}
+{"duration":17,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n      WITH all_completions AS (\n        SELECT\n          employee_id,\n          game_id,\n          ","timestamp":"2026-10-29 11:01:59"}
+{"level":"debug","message":"GET /api/daily-games/celebrations","service":"hrobit-backend","timestamp":"2026-10-29 11:01:59"}
+{"level":"debug","message":"GET /api/daily-games/champions?period=all","service":"hrobit-backend","timestamp":"2026-10-29 11:01:59"}
+{"duration":3,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n      WITH all_completions AS (\n        SELECT\n          employee_id,\n          game_id,\n          ","timestamp":"2026-10-29 11:01:59"}
+{"level":"debug","message":"GET /api/daily-games/champions?period=all","service":"hrobit-backend","timestamp":"2026-10-29 11:01:59"}
+{"duration":4,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n      WITH all_completions AS (\n        SELECT\n          employee_id,\n          game_id,\n          ","timestamp":"2026-10-29 11:01:59"}
+{"level":"debug","message":"GET /api/daily-games/champions?period=all","service":"hrobit-backend","timestamp":"2026-10-29 11:01:59"}
+{"duration":3,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n      WITH all_completions AS (\n        SELECT\n          employee_id,\n          game_id,\n          ","timestamp":"2026-10-29 11:01:59"}
+{"level":"debug","message":"GET /api/daily-games","service":"hrobit-backend","timestamp":"2026-10-29 11:02:00"}
+{"level":"debug","message":"GET /api/events","service":"hrobit-backend","timestamp":"2026-10-29 11:02:05"}
+{"level":"debug","message":"GET /api/hr-contacts","service":"hrobit-backend","timestamp":"2026-10-29 11:02:05"}
+{"duration":5,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rs","timestamp":"2026-10-29 11:02:05"}
+{"duration":4,"level":"debug","message":"Executed query","rows":10,"service":"hrobit-backend","text":"\n      SELECT DISTINCT ON (LOWER(TRIM(holiday_name)), start_date::date)\n             id, holiday_nam","timestamp":"2026-10-29 11:02:05"}
+{"duration":26,"level":"debug","message":"Executed query","rows":797,"service":"hrobit-backend","text":"\n      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email, ","timestamp":"2026-10-29 11:02:05"}
+{"level":"debug","message":"GET /api/announcements","service":"hrobit-backend","timestamp":"2026-10-29 11:02:08"}
+{"level":"debug","message":"GET /api/quick-links","service":"hrobit-backend","timestamp":"2026-10-29 11:02:08"}
+{"level":"debug","message":"GET /api/kudos","service":"hrobit-backend","timestamp":"2026-10-29 11:02:08"}
+{"level":"debug","message":"GET /api/courses","service":"hrobit-backend","timestamp":"2026-10-29 11:02:08"}
+{"level":"debug","message":"GET /api/faqs","service":"hrobit-backend","timestamp":"2026-10-29 11:02:08"}
+{"level":"debug","message":"GET /api/games","service":"hrobit-backend","timestamp":"2026-10-29 11:02:08"}
+{"duration":11,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"\n      SELECT id, title, description, details, category, priority, pinned, read, image,\n            ","timestamp":"2026-10-29 11:02:08"}
+{"duration":10,"level":"debug","message":"Executed query","rows":6,"service":"hrobit-backend","text":"\n      SELECT id, title, description, category, url, icon, placeholder, sort_order\n      FROM hcm.qu","timestamp":"2026-10-29 11:02:08"}
+{"level":"debug","message":"GET /api/employees","service":"hrobit-backend","timestamp":"2026-10-29 11:02:08"}
+{"level":"debug","message":"GET /api/celebrations","service":"hrobit-backend","timestamp":"2026-10-29 11:02:08"}
+{"duration":8,"level":"debug","message":"Executed query","rows":4,"service":"hrobit-backend","text":"SELECT id, title, subtitle, difficulty, description, icon, color, available FROM hcm.games WHERE ava","timestamp":"2026-10-29 11:02:08"}
+{"duration":37,"level":"debug","message":"Executed query","rows":8,"service":"hrobit-backend","text":"\n      SELECT id, title, provider, category, level, duration, access, certificate, description, url,","timestamp":"2026-10-29 11:02:08"}
+{"duration":36,"level":"debug","message":"Executed query","rows":6,"service":"hrobit-backend","text":"\n      SELECT id, category, question, answer\n      FROM hcm.faqs\n      ORDER BY id ASC\n    ","timestamp":"2026-10-29 11:02:08"}
+{"duration":41,"level":"debug","message":"Executed query","rows":3,"service":"hrobit-backend","text":"\n      SELECT id, from_name AS \"from\", to_name AS \"to\", category, message, initials, color,\n        ","timestamp":"2026-10-29 11:02:08"}
+{"duration":9,"level":"debug","message":"Executed query","rows":200,"service":"hrobit-backend","text":"\n      SELECT e.id, e.first_name, e.last_name, e.dob, e.join_date,\n             d.department_name, d","timestamp":"2026-10-29 11:02:08"}
+{"duration":20,"level":"debug","message":"Executed query","rows":728,"service":"hrobit-backend","text":"\n      SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.dob, e.join_date","timestamp":"2026-10-29 11:02:08"}
