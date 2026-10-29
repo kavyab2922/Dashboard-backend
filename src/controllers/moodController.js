@@ -194,11 +194,12 @@ exports.getTeamMoods = async (req, res, next) => {
     if (!id) return res.status(403).json({ success: false, message: 'A local employee identity is required.' });
     const moods = await query(`
       SELECT m.id, m.employee_id, m.mood, m.visibility, m.created_at, true AS identity_allowed,
-             e.first_name, e.last_name, e.profile_picture_url, d.department_name, des.designation_name
+             e.first_name, e.last_name, COALESCE(up.avatar_url, e.profile_picture_url) AS profile_picture_url, d.department_name, des.designation_name
       FROM hcm.mood_checkins m
       JOIN hcm.employees e ON e.id = m.employee_id
       LEFT JOIN hcm.departments d ON e.department_id = d.id
       LEFT JOIN hcm.designations des ON e.designation_id = des.id
+      LEFT JOIN hcm.user_profiles up ON up.employee_id = e.id
       WHERE e.is_active = true AND e.is_deleted = false AND m.visibility <> 'private'
         AND (m.employee_id = $1 OR m.visibility = 'colleagues' OR EXISTS (
           SELECT 1 FROM hcm.mood_checkin_recipients r WHERE r.mood_checkin_id = m.id AND r.employee_id = $1

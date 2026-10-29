@@ -10,11 +10,13 @@ exports.getAllEvents = async (req, res, next) => {
 
     // Fetch upcoming holidays from organization_holidays
     const holidaysRes = await query(`
-      SELECT DISTINCT ON (LOWER(TRIM(holiday_name)), start_date::date)
-             id, holiday_name, description, TO_CHAR(start_date, 'YYYY-MM-DD') AS date, holiday_type
-      FROM hcm.organization_holidays
-      WHERE start_date >= CURRENT_DATE - INTERVAL '7 days'
-      ORDER BY LOWER(TRIM(holiday_name)), start_date::date, id ASC
+      SELECT DISTINCT ON (LOWER(TRIM(h.holiday_name)), h.start_date::date)
+             h.id, h.holiday_name, h.description, TO_CHAR(h.start_date, 'YYYY-MM-DD') AS date, h.holiday_type,
+             hc.image AS cover_image
+      FROM hcm.organization_holidays h
+      LEFT JOIN hcm.holiday_covers hc ON hc.holiday_id = h.id
+      WHERE h.start_date >= CURRENT_DATE - INTERVAL '7 days'
+      ORDER BY LOWER(TRIM(h.holiday_name)), h.start_date::date, h.id ASC
       LIMIT 10
     `);
 
@@ -28,7 +30,8 @@ exports.getAllEvents = async (req, res, next) => {
       category: 'Holiday',
       rsvp: '',
       color: 'gold',
-      image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=85',
+      image: h.cover_image || 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=85',
+      hasCustomCover: Boolean(h.cover_image),
     }));
 
     const events = [
@@ -39,6 +42,32 @@ exports.getAllEvents = async (req, res, next) => {
     res.json({ success: true, data: events });
   } catch (err) {
     next(err);
+  }
+};
+
+// Sets (or with an empty image, clears) the cover photo of a holiday-calendar entry.
+exports.setHolidayCover = async (req, res, next) => {
+  try {
+    const holidayId = Number(req.params.id);
+    const { image } = req.body;
+    const holiday = await query('SELECT id FROM hcm.organization_holidays WHERE id = $1', [holidayId]);
+    if (holiday.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Holiday not found' });
+    }
+
+    if (!image) {
+      await query('DELETE FROM hcm.holiday_covers WHERE holiday_id = $1', [holidayId]);
+      return res.json({ success: true, data: { id: `holiday-${holidayId}`, image: null } });
+    }
+
+    await query(`
+      INSERT INTO hcm.holiday_covers (holiday_id, image, updated_at)
+      VALUES ($1, $2, CURRENT_TIMESTAMP)
+      ON CONFLICT (holiday_id) DO UPDATE SET image = EXCLUDED.image, updated_at = CURRENT_TIMESTAMP
+    `, [holidayId, image]);
+    return res.json({ success: true, data: { id: `holiday-${holidayId}`, image } });
+  } catch (err) {
+    return next(err);
   }
 };
 

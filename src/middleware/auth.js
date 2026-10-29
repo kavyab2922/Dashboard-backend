@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const jwt = require('jsonwebtoken');
 const logger = require('../config/logger');
 const { bucketName, region } = require('../config/s3');
@@ -31,6 +33,20 @@ function isAdminRole(role) {
 
 function hasAdminAccess(user) {
   return isAdminRole(user?.access_role) || isAdminRole(user?.role);
+}
+
+// Creating, editing and deleting shared content is for HR admins; the UI hides those
+// controls, and this enforces it for direct API calls too.
+function requireAdmin(req, res, next) {
+  if (hasAdminAccess(req.user)) return next();
+  return res.status(403).json({ success: false, message: 'Only HR admins can make this change.' });
+}
+
+// Employees may still mark an announcement read/unread through the update route.
+function requireAdminUnlessReadOnly(req, res, next) {
+  const keys = Object.keys(req.body || {});
+  if (keys.length > 0 && keys.every((key) => key === 'read')) return next();
+  return requireAdmin(req, res, next);
 }
 
 const MAX_EVENT_IMAGE_BYTES = 7 * 1024 * 1024;
@@ -84,6 +100,13 @@ function validateEventImage(image) {
   const s3UrlPattern = new RegExp(`^https://${escapedBucket}\\.s3\\.${escapedRegion}\\.amazonaws\\.com/uploads/[^\\s]+$`);
   if (s3UrlPattern.test(imageValue)) return null;
 
+  // Covers uploaded through /api/upload are served from /uploads on this server.
+  const localUpload = imageValue.match(/^(?:https?:\/\/[^/\s]+)?\/uploads\/([A-Za-z0-9._-]+\.(?:jpe?g|png|webp))$/i);
+  if (localUpload) {
+    const uploadDir = path.resolve(process.env.UPLOAD_PATH || './uploads');
+    return fs.existsSync(path.join(uploadDir, localUpload[1])) ? null : 'The uploaded event photo could not be found. Please upload it again.';
+  }
+
   const match = imageValue.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
   if (!match || !EVENT_IMAGE_TYPES.has(match[1])) {
     return 'Event photos must be JPG, PNG, or WebP images.';
@@ -109,4 +132,4 @@ function requireAdminForEventImage(req, res, next) {
   return next();
 }
 
-module.exports = { authenticate, generateToken, requireAdminForEventImage };
+module.exports = { authenticate, generateToken, requireAdmin, requireAdminUnlessReadOnly, requireAdminForEventImage };

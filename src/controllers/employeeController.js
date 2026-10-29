@@ -33,7 +33,7 @@ exports.getEmployees = async (req, res, next) => {
         e.official_email,
         e.dob,
         e.join_date,
-        e.profile_picture_url,
+        COALESCE(up.avatar_url, e.profile_picture_url) AS profile_picture_url,
         d.department_name,
         des.designation_name
       FROM hcm.employees e
@@ -41,6 +41,8 @@ exports.getEmployees = async (req, res, next) => {
         ON e.department_id = d.id
       LEFT JOIN hcm.designations des
         ON e.designation_id = des.id
+      LEFT JOIN hcm.user_profiles up
+        ON up.employee_id = e.id
       WHERE e.is_active = true
         AND e.is_deleted = false
       ORDER BY e.first_name, e.last_name
@@ -125,7 +127,7 @@ exports.getTodaysBirthdays = async (req, res, next) => {
           e.dob::date::text AS dob,
           d.department_name,
           des.designation_name,
-          COALESCE(e.profile_picture_url, p.avatar_url) AS profile_picture_url,
+          COALESCE(p.avatar_url, e.profile_picture_url) AS profile_picture_url,
           COALESCE(br.read, false) AS read
         FROM hcm.employees e
         LEFT JOIN hcm.departments d
@@ -449,7 +451,7 @@ exports.getHRContacts = async (req, res, next) => {
         e.official_email,
         e.personal_email,
         e.phone,
-        e.profile_picture_url,
+        COALESCE(up.avatar_url, e.profile_picture_url) AS profile_picture_url,
         e.employee_type,
         d.department_name,
         des.designation_name
@@ -458,6 +460,8 @@ exports.getHRContacts = async (req, res, next) => {
         ON e.department_id = d.id
       LEFT JOIN hcm.designations des
         ON e.designation_id = des.id
+      LEFT JOIN hcm.user_profiles up
+        ON up.employee_id = e.id
       WHERE COALESCE(e.is_deleted, false) = false
         AND (
           e.is_active = true

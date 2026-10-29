@@ -3,10 +3,14 @@ const router = express.Router();
 
 const {
   authenticate,
+  requireAdmin,
+  requireAdminUnlessReadOnly,
   requireAdminForEventImage,
 } = require('../middleware/auth');
 
 const upload = require('../middleware/upload');
+const validate = require('../middleware/validate');
+const schemas = require('../validation/schemas');
 
 const authController = require('../controllers/authController');
 const employeeController = require('../controllers/employeeController');
@@ -21,6 +25,7 @@ const gameController = require('../controllers/gameController');
 const dashboardController = require('../controllers/dashboardController');
 const moodController = require('../controllers/moodController');
 const uploadController = require('../controllers/uploadController');
+const presenceController = require('../controllers/presenceController');
 
 const { pool } = require('../config/db');
 const redis = require('../config/redis');
@@ -91,6 +96,20 @@ router.get(
   employeeController.getHRContacts
 );
 
+// Presence: browsers report activity each minute; Teams status is used when configured
+router.post(
+  '/presence/heartbeat',
+  authenticate,
+  presenceController.heartbeat
+);
+
+router.post(
+  '/presence',
+  authenticate,
+  validate(schemas.presenceLookup),
+  presenceController.getPresence
+);
+
 // Announcements
 router.get(
   '/announcements',
@@ -101,18 +120,25 @@ router.get(
 router.post(
   '/announcements',
   authenticate,
+  requireAdmin,
+  validate(schemas.announcementCreate),
   announcementController.createAnnouncement
 );
 
 router.put(
   '/announcements/:id',
   authenticate,
+  requireAdminUnlessReadOnly,
+  validate(schemas.idParams, 'params'),
+  validate(schemas.announcementUpdate),
   announcementController.updateAnnouncement
 );
 
 router.delete(
   '/announcements/:id',
   authenticate,
+  requireAdmin,
+  validate(schemas.idParams, 'params'),
   announcementController.deleteAnnouncement
 );
 
@@ -126,6 +152,8 @@ router.get(
 router.post(
   '/events',
   authenticate,
+  requireAdmin,
+  validate(schemas.eventCreate),
   requireAdminForEventImage,
   eventController.createEvent
 );
@@ -133,6 +161,9 @@ router.post(
 router.put(
   '/events/:id',
   authenticate,
+  requireAdmin,
+  validate(schemas.idParams, 'params'),
+  validate(schemas.eventUpdate),
   requireAdminForEventImage,
   eventController.updateEvent
 );
@@ -140,7 +171,20 @@ router.put(
 router.delete(
   '/events/:id',
   authenticate,
+  requireAdmin,
+  validate(schemas.idParams, 'params'),
   eventController.deleteEvent
+);
+
+// Cover photo for a holiday-calendar entry (the holiday itself is read-only here)
+router.put(
+  '/events/holiday/:id/cover',
+  authenticate,
+  requireAdmin,
+  validate(schemas.idParams, 'params'),
+  validate(schemas.holidayCover),
+  requireAdminForEventImage,
+  eventController.setHolidayCover
 );
 
 // Quick links
@@ -153,18 +197,21 @@ router.get(
 router.post(
   '/quick-links',
   authenticate,
+  requireAdmin,
   quickLinkController.createQuickLink
 );
 
 router.put(
   '/quick-links/:id',
   authenticate,
+  requireAdmin,
   quickLinkController.updateQuickLink
 );
 
 router.delete(
   '/quick-links/:id',
   authenticate,
+  requireAdmin,
   quickLinkController.deleteQuickLink
 );
 

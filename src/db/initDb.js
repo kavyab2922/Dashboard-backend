@@ -47,6 +47,15 @@ async function initDb() {
     `);
     await client.query("ALTER TABLE hcm.events ADD COLUMN IF NOT EXISTS hosts JSONB NOT NULL DEFAULT '[]'::jsonb;");
 
+    // Cover photos HR admins choose for holiday-calendar entries (the calendar itself stays read-only).
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS hcm.holiday_covers (
+        holiday_id INTEGER PRIMARY KEY,
+        image TEXT NOT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     // 3. Quick Links table
     await client.query(`
       CREATE TABLE IF NOT EXISTS hcm.quick_links (
@@ -407,7 +416,7 @@ async function initDb() {
         INSERT INTO hcm.quick_links (title, description, category, url, icon, placeholder, sort_order)
         VALUES
         ('HR orbit', 'Open HR orbit', 'HR', 'https://hrorbit.simplify3x.com/login', 'Orbit', false, 1),
-        ('Leave Management', 'Review and apply for leaves', 'HR', '#placeholder-leave', 'CalendarDays', true, 2),
+        ('Leave Management', 'Review and apply for leaves', 'HR', 'https://hrorbit.simplify3x.com/leave-management/leave-request', 'CalendarDays', false, 2),
         ('Reward Store', 'Explore recognition rewards and points', 'Benefits', '#placeholder-rewards', 'Gift', true, 3),
         ('Learning Resources', 'Find your next learning path and courses', 'Learning', '/learning', 'GraduationCap', false, 4),
         ('Company Policies', 'Read approved workplace guidance & handbook', 'HR', '#placeholder-policies', 'BookOpen', true, 5),
