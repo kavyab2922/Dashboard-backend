@@ -18944,3 +18944,8 @@
 {"duration":8,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.employees WHERE is_active = true AND is_deleted = false","timestamp":"2026-10-29 15:16:03"}
 {"duration":5,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT SUM(COALESCE(closing_balance::numeric, 0)) AS balance \n         FROM hcm.employee_leave_balan","timestamp":"2026-10-29 15:16:03"}
 {"duration":4,"level":"debug","message":"Executed query","rows":1,"service":"hrobit-backend","text":"SELECT COUNT(*) FROM hcm.kudos","timestamp":"2026-10-29 15:16:03"}
+{"level":"info","message":"Initializing database tables in schema hcm...","service":"hrobit-backend","timestamp":"2026-10-30 18:26:23"}
+{"level":"info","message":"Connected to Redis server","service":"hrobit-backend","timestamp":"2026-10-30 18:26:23"}
+{"level":"info","message":"Database initialization & seeding completed successfully.","service":"hrobit-backend","timestamp":"2026-10-30 18:26:23"}
+{"level":"info","message":"Server successfully started on port 3000 [development]","service":"hrobit-backend","timestamp":"2026-10-30 18:26:23"}
+{"level":"info","message":"API Base URL: http://localhost:3000/api","service":"hrobit-backend","timestamp":"2026-10-30 18:26:23"}
