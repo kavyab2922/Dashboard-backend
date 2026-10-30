@@ -6,13 +6,18 @@ const password = process.env.DB_PASS ? process.env.DB_PASS.replace(/^"|"$/g, '')
 const pool = new Pool({
   host: process.env.DB_HOST || '10.0.74.8',
   port: parseInt(process.env.DB_PORT || '5432', 10),
-  user: process.env.DB_USER || 'admin',
+  user: process.env.DB_USER,
   password: password,
   database: process.env.DB_NAME || 'defaultdb',
   max: parseInt(process.env.POOL_MAX_CONNECTION || '5', 10),
   min: parseInt(process.env.POOL_MIN_CONNECTION || '0', 10),
   connectionTimeoutMillis: parseInt(process.env.POOL_MAX_TIMEOUT || '30000', 10),
   idleTimeoutMillis: parseInt(process.env.POOL_IDLE_TIMEOUT || '10000', 10),
+  // Detect sockets left dead by a network switch (Wi-Fi <-> mobile) so they don't hang forever
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000,
+  // Fail stuck queries instead of holding a pool slot forever; the pool then discards that client
+  query_timeout: parseInt(process.env.DB_QUERY_TIMEOUT || '60000', 10),
 });
 
 pool.on('connect', (client) => {

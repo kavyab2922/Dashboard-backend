@@ -6,14 +6,11 @@ let redisClient = null;
 if (process.env.REDIS_URL) {
   redisClient = createClient({
     url: process.env.REDIS_URL,
+    // Ping periodically so a socket killed by a network switch is noticed and reconnected
+    pingInterval: 30000,
     socket: {
-      reconnectStrategy: (retries) => {
-        if (retries > 10) {
-          logger.warn('Redis reconnection retries exhausted. Running without Redis.');
-          return new Error('Redis reconnection failed');
-        }
-        return Math.min(retries * 100, 3000);
-      },
+      // Keep retrying (capped backoff) so Redis recovers after a network change without a restart
+      reconnectStrategy: (retries) => Math.min(retries * 200, 10000),
     },
   });
 

@@ -19,20 +19,6 @@ const httpsAgent = new HttpsAgent({
   timeout: Number(process.env.AWS_S3_FREE_SOCKET_TIMEOUT) || 30_000,
 });
 
-if (process.env.NODE_ENV === 'development') {
-  const mask = (value) => value ? `${value.slice(0, 4)}...${value.slice(-4)}` : '<missing>';
-  console.log('[AWS S3 config]', {
-    bucket: bucketName || '<missing>',
-    region: region || '<missing>',
-    accessKeyId: mask(accessKeyId),
-    secretAccessKey: secretAccessKey ? `<configured, length=${secretAccessKey.length}>` : '<missing>',
-    sessionToken: sessionToken ? '<configured>' : '<not configured>',
-  });
-  if (secretAccessKey && secretAccessKey.length !== 40) {
-    console.warn(`[AWS S3 config] WARNING: AWS_SECRET_ACCESS_KEY is ${secretAccessKey.length} characters long. Standard AWS secret access keys are always exactly 40 characters. AWS will reject requests with SignatureDoesNotMatch.`);
-  }
-}
-
 const s3Client = accessKeyId && secretAccessKey && region && bucketName
   ? new S3Client({
       region,

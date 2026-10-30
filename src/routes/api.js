@@ -8,11 +8,14 @@ const {
   requireAdminForEventImage,
 } = require('../middleware/auth');
 
+const { requireAllowedNetwork } = require('../middleware/network');
 const upload = require('../middleware/upload');
 const validate = require('../middleware/validate');
 const schemas = require('../validation/schemas');
 
 const authController = require('../controllers/authController');
+const ssoController = require('../controllers/ssoController');
+const loginController = require('../controllers/loginController');
 const employeeController = require('../controllers/employeeController');
 const announcementController = require('../controllers/announcementController');
 const eventController = require('../controllers/eventController');
@@ -26,6 +29,9 @@ const dashboardController = require('../controllers/dashboardController');
 const moodController = require('../controllers/moodController');
 const uploadController = require('../controllers/uploadController');
 const presenceController = require('../controllers/presenceController');
+const chatbotController = require('../controllers/chatbotController');
+const chatbotDocumentController = require('../controllers/chatbotDocumentController');
+const chatbotDocumentUpload = require('../middleware/chatbotDocumentUpload');
 
 const { pool } = require('../config/db');
 const redis = require('../config/redis');
@@ -54,7 +60,10 @@ router.get('/health', async (req, res) => {
 });
 
 // Authentication and user profile
-router.post('/auth/login', authController.login);
+// Sign-in is only allowed from the office Wi-Fi or VPN.
+router.get('/auth/sso/start', requireAllowedNetwork, ssoController.start);
+router.get('/auth/sso/callback', requireAllowedNetwork, ssoController.callback);
+router.post('/auth/login', requireAllowedNetwork, loginController.passwordLogin);
 router.get('/auth/me', authenticate, authController.getMe);
 router.get('/profile', authenticate, authController.getMe);
 router.put('/profile', authenticate, employeeController.updateProfile);
@@ -392,5 +401,12 @@ router.post(
   upload.single('file'),
   uploadController.uploadFile
 );
+
+// HR assistant chatbot. Any signed-in employee can ask; only HR admins manage
+// the PDF documents it answers from.
+router.post('/chatbot/ask', authenticate, chatbotController.askChatbot);
+router.get('/chatbot/employees-on-leave', authenticate, chatbotController.getEmployeesOnLeave);
+router.post('/chatbot/documents', authenticate, requireAdmin, chatbotDocumentUpload.single('file'), chatbotDocumentController.uploadDocument);
+router.get('/chatbot/documents', authenticate, requireAdmin, chatbotDocumentController.listDocuments);
 
 module.exports = router;

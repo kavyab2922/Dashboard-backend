@@ -99,6 +99,8 @@ async function initDb() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+    // Links an "Upcoming event" notification to its event so it goes when the event is deleted.
+    await client.query('ALTER TABLE hcm.notifications ADD COLUMN IF NOT EXISTS event_id INTEGER;');
 
     // 6. Durable per-user birthday notification read state
     await client.query(`
@@ -309,6 +311,15 @@ async function initDb() {
       );
     `);
 
+    // 9b. HROrbit sign-in passwords (bcrypt hashes only), set via `npm run set-password`
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS hcm.user_credentials (
+        email VARCHAR(255) PRIMARY KEY,
+        password_hash TEXT NOT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     // 10. Privacy-aware team mood and appreciation tables
     await client.query(`
       CREATE TABLE IF NOT EXISTS hcm.mood_checkins (
@@ -417,7 +428,7 @@ async function initDb() {
         VALUES
         ('HR orbit', 'Open HR orbit', 'HR', 'https://hrorbit.simplify3x.com/login', 'Orbit', false, 1),
         ('Leave Management', 'Review and apply for leaves', 'HR', 'https://hrorbit.simplify3x.com/leave-management/leave-request', 'CalendarDays', false, 2),
-        ('Reward Store', 'Explore recognition rewards and points', 'Benefits', '#placeholder-rewards', 'Gift', true, 3),
+        ('Reward Store', 'Explore recognition rewards and points', 'Benefits', 'https://recognize.applaudiq.com/', 'Gift', false, 3),
         ('Learning Resources', 'Find your next learning path and courses', 'Learning', '/learning', 'GraduationCap', false, 4),
         ('Company Policies', 'Read approved workplace guidance & handbook', 'HR', '#placeholder-policies', 'BookOpen', true, 5),
         ('Help & Support', 'Quick Connect with dedicated HR partners', 'Support', '/hr-contacts', 'LifeBuoy', false, 6);

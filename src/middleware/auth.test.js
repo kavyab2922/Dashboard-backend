@@ -1,5 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+process.env.JWT_SECRET ||= 'test-secret';
 const { requireAdmin, requireAdminUnlessReadOnly } = require('./auth');
 
 function run(middleware, user, body = {}) {
@@ -15,6 +16,8 @@ const employee = { access_role: 'Employee', role: 'Employee' };
 test('HR admins can create, edit and delete content', () => {
   assert.equal(run(requireAdmin, admin), 'next');
   assert.equal(run(requireAdmin, { role: 'admin' }), 'next');
+  // A session issued before the email was added to HR_ADMIN_EMAILS still says Employee.
+  assert.equal(run(requireAdmin, { access_role: 'Employee', email: 'Srinagaraj.P@simplify3x.com' }), 'next');
 });
 
 test('employees are refused with 403', () => {

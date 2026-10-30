@@ -1,4 +1,4 @@
-const { query } = require('../config/db');
+const { pool, query } = require('../config/db');
 
 exports.getAllEvents = async (req, res, next) => {
   try {
@@ -8,15 +8,19 @@ exports.getAllEvents = async (req, res, next) => {
       ORDER BY date ASC, id ASC
     `);
 
-    // Fetch upcoming holidays from organization_holidays
+    // Fetch upcoming holidays from organization_holidays.
+    // DISTINCT ON must sort by name, so de-duplicate first and then take the soonest 10 by date.
     const holidaysRes = await query(`
-      SELECT DISTINCT ON (LOWER(TRIM(h.holiday_name)), h.start_date::date)
-             h.id, h.holiday_name, h.description, TO_CHAR(h.start_date, 'YYYY-MM-DD') AS date, h.holiday_type,
-             hc.image AS cover_image
-      FROM hcm.organization_holidays h
-      LEFT JOIN hcm.holiday_covers hc ON hc.holiday_id = h.id
-      WHERE h.start_date >= CURRENT_DATE - INTERVAL '7 days'
-      ORDER BY LOWER(TRIM(h.holiday_name)), h.start_date::date, h.id ASC
+      SELECT * FROM (
+        SELECT DISTINCT ON (LOWER(TRIM(h.holiday_name)), h.start_date::date)
+               h.id, h.holiday_name, h.description, TO_CHAR(h.start_date, 'YYYY-MM-DD') AS date, h.holiday_type,
+               hc.image AS cover_image
+        FROM hcm.organization_holidays h
+        LEFT JOIN hcm.holiday_covers hc ON hc.holiday_id = h.id
+        WHERE h.start_date >= CURRENT_DATE - INTERVAL '7 days'
+        ORDER BY LOWER(TRIM(h.holiday_name)), h.start_date::date, h.id ASC
+      ) upcoming
+      ORDER BY date ASC, id ASC
       LIMIT 10
     `);
 
@@ -79,14 +83,33 @@ exports.createEvent = async (req, res, next) => {
       return res.status(400).json({ success: false, message: requiresHost ? 'Title, description, date, time, venue and at least one host are required' : 'Title, description, date and venue are required' });
     }
 
-    const result = await query(`
-      INSERT INTO hcm.events (title, description, date, time, venue, category, rsvp, color, image, hosts)
-      VALUES ($1, $2, $3::date, COALESCE($4, '12:00 PM'), $5, COALESCE($6, 'Community'), $7, COALESCE($8, 'mint'), $9, COALESCE($10::jsonb, '[]'::jsonb))
-      RETURNING id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rsvp, color, image, COALESCE(hosts, '[]'::jsonb) AS hosts
-    `, [title, description, date, time, venue || '', category, rsvp || '', color, image || null, JSON.stringify(Array.isArray(hosts) ? hosts : [])]);
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await client.query(`
+        INSERT INTO hcm.events (title, description, date, time, venue, category, rsvp, color, image, hosts)
+        VALUES ($1, $2, $3::date, COALESCE($4, '12:00 PM'), $5, COALESCE($6, 'Community'), $7, COALESCE($8, 'mint'), $9, COALESCE($10::jsonb, '[]'::jsonb))
+        RETURNING id, title, description, TO_CHAR(date, 'YYYY-MM-DD') AS date, time, venue, category, rsvp, color, image, COALESCE(hosts, '[]'::jsonb) AS hosts
+      `, [title, description, date, time, venue || '', category, rsvp || '', color, image || null, JSON.stringify(Array.isArray(hosts) ? hosts : [])]);
 
-    const row = result.rows[0];
-    res.status(201).json({ success: true, data: { ...row, id: String(row.id) } });
+      const row = result.rows[0];
+      await client.query(`
+        INSERT INTO hcm.notifications (employee_id, title, detail, type, read, time, event_id)
+        VALUES (NULL, $1, $2, 'event', false, 'Just now', $3)
+      `, [
+        'Upcoming event',
+        `${row.title} · ${row.date} at ${row.time} · ${row.venue}`,
+        row.id,
+      ]);
+
+      await client.query('COMMIT');
+      res.status(201).json({ success: true, data: { ...row, id: String(row.id) } });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
   } catch (err) {
     next(err);
   }
@@ -136,10 +159,18 @@ exports.updateEvent = async (req, res, next) => {
 exports.deleteEvent = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const result = await query('DELETE FROM hcm.events WHERE id = $1 RETURNING id', [id]);
+    const result = await query(`DELETE FROM hcm.events WHERE id = $1 RETURNING id, title, TO_CHAR(date, 'YYYY-MM-DD') AS date`, [id]);
     if (result.rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Event not found' });
     }
+    // Remove its "Upcoming event" notification too. Notifications created before
+    // event_id existed are matched by the "<title> · <date> at" text they start with.
+    const event = result.rows[0];
+    await query(
+      `DELETE FROM hcm.notifications
+       WHERE type = 'event' AND (event_id = $1 OR (event_id IS NULL AND detail LIKE $2 || ' · ' || $3 || ' at %'))`,
+      [event.id, event.title, event.date],
+    );
     res.json({ success: true, message: 'Event deleted successfully' });
   } catch (err) {
     next(err);

@@ -7,6 +7,7 @@ exports.getAllAnnouncements = async (req, res, next) => {
       SELECT id, title, description, details, category, priority, pinned, read, image,
              TO_CHAR(date, 'YYYY-MM-DD') AS date, created_at
       FROM hcm.announcements
+      WHERE date >= CURRENT_DATE
       ORDER BY pinned DESC, date DESC, id DESC
     `);
 

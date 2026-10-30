@@ -1,8 +1,7 @@
-const bcrypt = require('bcryptjs');
 const { query } = require('../config/db');
-const { generateToken } = require('../middleware/auth');
 
 const logger = require('../config/logger');
+const { isGrantedHrAdmin } = require('../middleware/auth');
 
 function dateOnly(value) {
   if (!value) return null;
@@ -82,10 +81,6 @@ function normalizeAssetUrl(url) {
   return url;
 }
 
-function isGrantedHrAdmin(identity) {
-  return String(identity || '').trim().toLowerCase() === 'srinagaraj.p@simplify3x.com';
-}
-
 function profileFields(user) {
   const rawRole = [user?.role, user?.userRole, user?.profile, user?.title].find((value) => typeof value === 'string' && value.trim());
   const roleParts = rawRole?.split(/\s*[·|]\s*/).map((part) => part.trim()).filter(Boolean) || [];
@@ -98,218 +93,81 @@ function profileFields(user) {
   };
 }
 
-exports.login = async (req, res, next) => {
-  try {
-    const { email, username, password } = req.body;
-    const userIdentifier = (email || username || '').trim().toLowerCase();
+// Builds the session user (the JWT payload) for a signed-in employee. `claims`
+// are the verified ID-token claims when the sign-in came through Microsoft SSO.
+async function buildSessionUser(email, claims = {}) {
+  const userIdentifier = String(email || '').trim().toLowerCase();
+  const result = await query(
+    `SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,
+            e.dob::date AS dob, e.join_date::date AS join_date,
+            to_jsonb(e) AS employee_data,
+            d.department_name, des.designation_name, o.organization_name, e.organization_id
+     FROM hcm.employees e
+     LEFT JOIN hcm.departments d ON e.department_id = d.id
+     LEFT JOIN hcm.designations des ON e.designation_id = des.id
+     LEFT JOIN hcm.organizations o ON e.organization_id = o.id
+     WHERE LOWER(e.official_email) = $1
+     LIMIT 1`,
+    [userIdentifier]
+  );
 
-    if (!userIdentifier) {
-      return res.status(400).json({ success: false, message: 'Email or username is required' });
-    }
+  const isGrantedAdmin = isGrantedHrAdmin(userIdentifier);
+  const isSrinagaraj = userIdentifier.includes('srinagaraj.p@simplify3x.com') || userIdentifier.includes('srinagaraj');
+  const resolvedEmploymentType = isSrinagaraj ? 'Intern' : 'Employee';
+  const resolvedJobTitle = isSrinagaraj ? 'Software Engineer (Intern)' : (claims.jobTitle || 'Employee');
 
-    if (!password) {
-      return res.status(400).json({ success: false, message: 'Password is required' });
-    }
-
-    // 1. Authenticate against the same HROrbit API used by the production portal.
-    // The portal accepts JSON { username, password } at /api/auth/login; it does
-    // not expose the Keycloak direct-grant flow to this application.
-    let hrorbitAuthOk = false;
-    let hrorbitFailure = '';
-    let hrorbitUser = null;
-    let hrorbitPayload = null;
-    try {
-      const hrorbitBaseUrl = process.env.HRORBIT_BASE_URL || 'https://hrorbit.simplify3x.com';
-      const hrorbitRes = await fetch(`${hrorbitBaseUrl}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: userIdentifier, password }),
-      });
-      const hrorbitData = await hrorbitRes.json().catch(() => ({}));
-      hrorbitPayload = hrorbitData;
-      const remoteUser = hrorbitData.data?.user || hrorbitData.data?.employee || hrorbitData.user || hrorbitData.employee;
-      logger.info(`HROrbit profile date fields for ${userIdentifier}: ${JSON.stringify(Object.keys(hrorbitData).filter((key) => /birth|dob/i.test(key)))} user=${JSON.stringify(remoteUser && Object.keys(remoteUser).filter((key) => /birth|dob/i.test(key)))}`);
-
-      if (hrorbitRes.ok && hrorbitData.success && remoteUser) {
-        hrorbitUser = remoteUser;
-
-        const hrorbitToken = hrorbitData.token || hrorbitData.access_token || hrorbitData.data?.token || hrorbitData.data?.access_token;
-        if (hrorbitToken) {
-          try {
-            const profileRes = await fetch(`${hrorbitBaseUrl}/api/auth/profile`, {
-              headers: { Authorization: `Bearer ${hrorbitToken}` },
-            });
-            const profileData = await profileRes.json().catch(() => ({}));
-            const profileUser =
-              profileData.data?.user ||
-              profileData.data?.employee ||
-              profileData.user ||
-              profileData.employee ||
-              profileData.data?.profile ||
-              profileData.profile ||
-              profileData.response?.profile ||
-              profileData.response?.user ||
-              profileData.response ||
-              profileData.data;
-            if (profileRes.ok && profileUser && typeof profileUser === 'object') {
-              hrorbitUser = { ...hrorbitUser, ...profileUser };
-              hrorbitPayload = { ...hrorbitPayload, ...profileData };
-            }
-          } catch (profileErr) {
-            logger.warn('Could not fetch HROrbit profile after login: ' + profileErr.message);
-          }
-        }
-
-        hrorbitAuthOk = true;
-        logger.info(`HROrbit authenticated successfully for ${userIdentifier}`);
-      } else {
-        hrorbitFailure = hrorbitData.message || `HROrbit returned ${hrorbitRes.status}`;
-        logger.warn(`HROrbit rejected login for ${userIdentifier}: ${hrorbitFailure}`);
-      }
-    } catch (hrorbitErr) {
-      hrorbitFailure = 'Unable to reach HROrbit authentication service';
-      logger.warn('HROrbit authentication failed: ' + hrorbitErr.message);
-    }
-
-    // 2. Enrich the authenticated account with the local employee record when
-    // available. HROrbit authentication must still work if provisioning in the
-    // local reporting database is incomplete or temporarily unavailable.
-    let result = { rows: [] };
-    try {
-      result = await query(
-        `SELECT e.id, e.employee_code, e.first_name, e.last_name, e.official_email, e.personal_email,
-                e.password_hash, e.initial_password, e.dob::date AS dob, e.join_date::date AS join_date,
-                to_jsonb(e) AS employee_data,
-                d.department_name, des.designation_name, o.organization_name, e.organization_id
-         FROM hcm.employees e
-         LEFT JOIN hcm.departments d ON e.department_id = d.id
-         LEFT JOIN hcm.designations des ON e.designation_id = des.id
-         LEFT JOIN hcm.organizations o ON e.organization_id = o.id
-         WHERE LOWER(e.official_email) = $1
-            OR LOWER(e.personal_email) = $1
-            OR LOWER(e.employee_code) = $1
-         LIMIT 1`,
-        [userIdentifier]
-      );
-    } catch (dbErr) {
-      if (!hrorbitAuthOk) throw dbErr;
-      logger.warn('Using HROrbit identity without local employee enrichment: ' + dbErr.message);
-    }
-
-    const hrorbitProfile = profileFields(hrorbitUser);
-    const remoteEmployeeCode = hrorbitUser?.employee_code || hrorbitUser?.employeeCode || hrorbitUser?.employee_id || hrorbitUser?.employeeId || hrorbitUser?.staffId || null;
-    const isGrantedAdmin = isGrantedHrAdmin(userIdentifier);
-    const isSrinagaraj = userIdentifier.includes('srinagaraj.p@simplify3x.com') || userIdentifier.includes('srinagaraj');
-    const resolvedEmploymentType = isSrinagaraj ? 'Intern' : (hrorbitProfile.employmentType || 'Employee');
-    const resolvedJobTitle = isSrinagaraj ? 'Software Engineer (Intern)' : (hrorbitProfile.jobTitle || 'Employee');
-    let user;
-    if (result.rows.length > 0) {
-      const row = result.rows[0];
-      let passwordValid = false;
-
-      if (hrorbitAuthOk) {
-        passwordValid = true;
-      } else if (row.password_hash) {
-        try {
-          passwordValid = bcrypt.compareSync(password, row.password_hash);
-        } catch (e) {
-          passwordValid = false;
-        }
-
-        // Support initial_password or dev fallbacks
-        if (!passwordValid && row.initial_password && password === row.initial_password) {
-          passwordValid = true;
-        }
-        if (!passwordValid && (password === 'Simpcv@#4x' || password === row.employee_code || password === '123456')) {
-          passwordValid = true;
-        }
-      } else if (row.initial_password) {
-        passwordValid = (password === row.initial_password || password === 'Simpcv@#4x' || password === row.employee_code || password.length >= 4);
-      } else {
-        // Employee has no password set in database yet (e.g. Kavya)
-        // Accept password and hash it for future logins
-        passwordValid = true;
-        try {
-          const hash = bcrypt.hashSync(password, 10);
-          await query('UPDATE hcm.employees SET password_hash = $1, password_set_at = CURRENT_TIMESTAMP WHERE id = $2', [hash, row.id]);
-        } catch (hashErr) {
-          logger.warn('Could not persist new password hash: ' + hashErr.message);
-        }
-      }
-
-      if (!passwordValid) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid password. Please check your HR Orbit credentials.',
-        });
-      }
-
-      const name = `${row.first_name || ''} ${row.last_name || ''}`.trim() || 'Employee';
-      user = {
-        id: row.id,
-        employee_code: row.employee_code,
-        name,
-        first_name: row.first_name,
-        last_name: row.last_name,
-        email: row.official_email || row.personal_email,
-        official_email: row.official_email,
-        department: hrorbitUser?.department || hrorbitUser?.departmentName || hrorbitUser?.department_name || row.department_name || 'General',
-        designation: resolvedJobTitle !== 'Employee' ? resolvedJobTitle : (row.designation_name || 'Associate'),
-        jobTitle: resolvedJobTitle !== 'Employee' ? resolvedJobTitle : (row.designation_name || 'Associate'),
-        organization_name: row.organization_name,
-        organization_id: row.organization_id,
-        dob: dateOnly(row.dob) || birthDate(row.employee_data) || birthDate(hrorbitUser) || birthDate(hrorbitPayload),
-        birthday: dateOnly(row.dob) || birthDate(row.employee_data) || birthDate(hrorbitUser) || birthDate(hrorbitPayload),
-        joined: dateOnly(row.join_date) || joiningDate(row.employee_data) || joiningDate(hrorbitUser) || joiningDate(hrorbitPayload),
-        employmentType: resolvedEmploymentType,
-        employmentStatus: hrorbitUser?.employmentStatus || hrorbitUser?.employment_status || hrorbitUser?.employeeStatus || hrorbitUser?.employee_status || hrorbitUser?.status || null,
-        role: isGrantedAdmin ? 'HR Admin' : 'Employee',
-        access_role: isGrantedAdmin ? 'HR Admin' : 'Employee',
-      };
-    } else if (hrorbitAuthOk) {
-      // HROrbit/Keycloak can authenticate an employee before the local profile
-      // has been provisioned in the reporting database.
-      const name = userIdentifier.includes('@')
-        ? userIdentifier.split('@')[0].replace(/[._-]+/g, ' ')
-        : userIdentifier;
-      user = {
-        id: `keycloak:${userIdentifier}`,
-        employee_code: remoteEmployeeCode || userIdentifier,
-        name: name.replace(/\b\w/g, (letter) => letter.toUpperCase()),
-        email: userIdentifier,
-        official_email: userIdentifier.includes('@') ? userIdentifier : null,
-        role: isGrantedAdmin ? 'HR Admin' : 'Employee',
-        access_role: isGrantedAdmin ? 'HR Admin' : 'Employee',
-        department: hrorbitUser?.department || hrorbitUser?.departmentName || hrorbitUser?.department_name || 'General',
-        designation: resolvedJobTitle,
-        jobTitle: resolvedJobTitle,
-        employmentType: resolvedEmploymentType,
-        employmentStatus: hrorbitUser?.employmentStatus || hrorbitUser?.employment_status || hrorbitUser?.employeeStatus || hrorbitUser?.employee_status || hrorbitUser?.status || null,
-        dob: birthDate(hrorbitUser) || birthDate(hrorbitPayload) || (isSrinagaraj ? '2006-03-13' : null),
-        birthday: birthDate(hrorbitUser) || birthDate(hrorbitPayload) || (isSrinagaraj ? '2006-03-13' : null),
-        joined: joiningDate(hrorbitUser) || joiningDate(hrorbitPayload),
-        location: locationValue(hrorbitUser) || locationValue(hrorbitPayload),
-        team: hrorbitUser?.team || hrorbitUser?.department || hrorbitUser?.departmentName || hrorbitUser?.department_name || 'General',
-      };
-    } else {
-      return res.status(401).json({
-        success: false,
-        message: hrorbitFailure
-          ? 'HROrbit rejected these credentials. Please verify your email/username and password.'
-          : `No employee account found for ${userIdentifier}`,
-      });
-    }
-
-    const token = generateToken(user);
-    res.json({
-      success: true,
-      token,
-      user,
-    });
-  } catch (err) {
-    next(err);
+  if (result.rows.length > 0) {
+    const row = result.rows[0];
+    const name = `${row.first_name || ''} ${row.last_name || ''}`.trim() || claims.name || 'Employee';
+    return {
+      id: row.id,
+      employee_code: row.employee_code,
+      name,
+      first_name: row.first_name,
+      last_name: row.last_name,
+      email: row.official_email || row.personal_email,
+      official_email: row.official_email,
+      department: row.department_name || 'General',
+      designation: resolvedJobTitle !== 'Employee' ? resolvedJobTitle : (row.designation_name || 'Associate'),
+      jobTitle: resolvedJobTitle !== 'Employee' ? resolvedJobTitle : (row.designation_name || 'Associate'),
+      organization_name: row.organization_name,
+      organization_id: row.organization_id,
+      dob: dateOnly(row.dob) || birthDate(row.employee_data),
+      birthday: dateOnly(row.dob) || birthDate(row.employee_data),
+      joined: dateOnly(row.join_date) || joiningDate(row.employee_data),
+      employmentType: resolvedEmploymentType,
+      employmentStatus: null,
+      role: isGrantedAdmin ? 'HR Admin' : 'Employee',
+      access_role: isGrantedAdmin ? 'HR Admin' : 'Employee',
+    };
   }
-};
+
+  // Microsoft can verify an employee before the local profile has been
+  // provisioned in the reporting database.
+  const fallbackName = claims.name || userIdentifier.split('@')[0].replace(/[._-]+/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
+  return {
+    id: `keycloak:${userIdentifier}`,
+    employee_code: userIdentifier,
+    name: fallbackName,
+    first_name: claims.given_name,
+    last_name: claims.family_name,
+    email: userIdentifier,
+    official_email: userIdentifier,
+    role: isGrantedAdmin ? 'HR Admin' : 'Employee',
+    access_role: isGrantedAdmin ? 'HR Admin' : 'Employee',
+    department: 'General',
+    designation: resolvedJobTitle,
+    jobTitle: resolvedJobTitle,
+    employmentType: resolvedEmploymentType,
+    employmentStatus: null,
+    dob: isSrinagaraj ? '2006-03-13' : null,
+    birthday: isSrinagaraj ? '2006-03-13' : null,
+    joined: null,
+    team: 'General',
+  };
+}
+
+exports.buildSessionUser = buildSessionUser;
 
 exports.getMe = async (req, res, next) => {
   try {

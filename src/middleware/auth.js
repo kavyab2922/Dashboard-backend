@@ -4,7 +4,9 @@ const jwt = require('jsonwebtoken');
 const logger = require('../config/logger');
 const { bucketName, region } = require('../config/s3');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'secret';
+// Sign-in is SSO-only, so a guessable secret would let anyone forge a session.
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) throw new Error('JWT_SECRET must be set');
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 
 function authenticate(req, res, next) {
@@ -31,8 +33,19 @@ function isAdminRole(role) {
   return ['admin', 'hr admin'].includes(String(role || '').trim().toLowerCase());
 }
 
+// HR_ADMIN_EMAILS: comma-separated emails allowed to switch into HR Admin mode.
+const HR_ADMIN_EMAILS = (process.env.HR_ADMIN_EMAILS || 'srinagaraj.p@simplify3x.com')
+  .split(',').map((email) => email.trim().toLowerCase()).filter(Boolean);
+
+function isGrantedHrAdmin(identity) {
+  return HR_ADMIN_EMAILS.includes(String(identity || '').trim().toLowerCase());
+}
+
+// The UI reads admin status live from /auth/me, so check the current list too:
+// a session issued before someone was added to HR_ADMIN_EMAILS would otherwise
+// show the admin controls while the API still refuses the change.
 function hasAdminAccess(user) {
-  return isAdminRole(user?.access_role) || isAdminRole(user?.role);
+  return isAdminRole(user?.access_role) || isAdminRole(user?.role) || isGrantedHrAdmin(user?.email || user?.official_email);
 }
 
 // Creating, editing and deleting shared content is for HR admins; the UI hides those
@@ -132,4 +145,4 @@ function requireAdminForEventImage(req, res, next) {
   return next();
 }
 
-module.exports = { authenticate, generateToken, requireAdmin, requireAdminUnlessReadOnly, requireAdminForEventImage };
+module.exports = { JWT_SECRET, authenticate, generateToken, isGrantedHrAdmin, requireAdmin, requireAdminUnlessReadOnly, requireAdminForEventImage };

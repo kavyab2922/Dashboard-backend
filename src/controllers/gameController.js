@@ -164,12 +164,30 @@ function seededNumber(seed) {
   return Math.abs(value);
 }
 
+/** Stable shuffle, so the correct answer is not always in the same position. */
+function seededShuffle(list, seed) {
+  return list
+    .map((item, index) => ({ item, key: seededNumber(`${seed}:${index}:${item}`) }))
+    .sort((left, right) => left.key - right.key)
+    .map(({ item }) => item);
+}
+
+/** Questions are written with the correct choice first; shuffle and record where it lands. */
+function shuffleQuestions(questions, seed) {
+  const shuffled = questions.map((question, index) => {
+    const choices = seededShuffle(question.choices, `${seed}:${index}`);
+    return { ...question, choices, answer: choices.indexOf(question.choices[0]) };
+  });
+  return { questions: shuffled.map(({ answer, ...question }) => question), answers: shuffled.map((question) => question.answer) };
+}
+
 const DIFFICULTIES = ['easy', 'medium', 'hard', 'expert', 'master'];
 const DIFFICULTY_MULTIPLIER = { easy: 1, medium: 1.15, hard: 1.3, expert: 1.5, master: 1.75 };
 /** Levels available per game and difficulty; the last one unlocks the
  *  "All levels completed" screen instead of an endless Next Level button. */
 const MAX_LEVEL = 10;
-const EXTERNAL_SOURCE_TIMEOUT_MS = 1500;
+// opentdb.com regularly takes ~1.5s, so a shorter timeout drops the quiz to the fallback.
+const EXTERNAL_SOURCE_TIMEOUT_MS = 5000;
 
 async function fetchExternalJson(url) {
   if (typeof fetch !== 'function') return null;
@@ -244,11 +262,11 @@ function buildQuizFromApi(payload, difficulty, level) {
   const questions = results.slice(0, count).map((item, index) => {
     const correct = decodeHtml(item.correct_answer);
     const choices = [correct, ...(Array.isArray(item.incorrect_answers) ? item.incorrect_answers : [])].map(decodeHtml);
-    const rotated = choices.map((choice, choiceIndex) => choices[(choiceIndex + index) % choices.length]);
-    return { id: `quiz-${level}-${index}`, question: decodeHtml(item.question), choices: rotated, category: decodeHtml(item.category || 'General') , answer: rotated.indexOf(correct) };
-  }).filter((item) => item.question && item.choices.length >= 2 && item.answer >= 0);
+    return { id: `quiz-${level}-${index}`, question: decodeHtml(item.question), choices: [...new Set(choices)], category: decodeHtml(item.category || 'General') };
+  }).filter((item) => item.question && item.choices.length >= 2);
   if (questions.length < Math.max(2, Math.min(count, 3))) return null;
-  return { config: { questions: questions.map(({ answer, ...question }) => question), difficulty, level, timeLimit: Math.max(45, 150 - level * 2) }, solution: { answers: questions.map((question) => question.answer) }, title: 'Answer the questions before the clock runs out.' };
+  const shuffled = shuffleQuestions(questions, `quiz:${difficulty}:${level}`);
+  return { config: { questions: shuffled.questions, difficulty, level, timeLimit: Math.max(45, 150 - level * 2) }, solution: { answers: shuffled.answers }, title: 'Answer the questions before the clock runs out.' };
 }
 
 function buildTriviaFromApi(payload, difficulty, level) {
@@ -257,11 +275,13 @@ function buildTriviaFromApi(payload, difficulty, level) {
   const questions = source.slice(0, count).map((item, index) => {
     const correct = decodeHtml(String(item.correctAnswer || item.correct_answer || '').trim());
     const incorrect = Array.isArray(item.incorrectAnswers) ? item.incorrectAnswers : (Array.isArray(item.incorrect_answers) ? item.incorrect_answers : []);
-    const choices = [correct, ...incorrect].map((choice) => decodeHtml(choice)).filter(Boolean);
-    return { id: `trivia-${level}-${index}`, question: decodeHtml(String(item.question?.text || item.question || '').trim()), choices, answer: choices.indexOf(correct), category: String(item.category || 'General') };
-  }).filter((item) => item.question && item.choices.length >= 2 && item.answer >= 0);
+    if (!correct) return null;
+    const choices = [...new Set([correct, ...incorrect].map((choice) => decodeHtml(choice)).filter(Boolean))];
+    return { id: `trivia-${level}-${index}`, question: decodeHtml(String(item.question?.text || item.question || '').trim()), choices, category: String(item.category || 'General') };
+  }).filter((item) => item && item.question && item.choices.length >= 2);
   if (questions.length < Math.max(2, Math.min(count, 3))) return null;
-  return { config: { questions: questions.map(({ answer, ...question }) => question), difficulty, level, timeLimit: Math.max(45, 150 - level * 2) }, solution: { answers: questions.map((question) => question.answer) }, title: 'Choose the best answer for every trivia question.' };
+  const shuffled = shuffleQuestions(questions, `trivia:${difficulty}:${level}`);
+  return { config: { questions: shuffled.questions, difficulty, level, timeLimit: Math.max(45, 150 - level * 2) }, solution: { answers: shuffled.answers }, title: 'Choose the best answer for every trivia question.' };
 }
 
 function buildWordFromApi(payload, difficulty, level) {
@@ -269,25 +289,24 @@ function buildWordFromApi(payload, difficulty, level) {
   const unique = [...new Set(words)];
   if (unique.length < 3) return null;
   const target = unique[(level - 1) % unique.length];
-  const visible = unique.filter((word) => word !== target).slice(0, Math.max(2, normalizedDifficultyCount(difficulty) - 1 + levelExtra(level, 3)));
-  const choices = [target, ...visible].sort((left, right) => seededNumber(`${level}:${left}`) - seededNumber(`${level}:${right}`));
-  return { config: { choices, clue: `Choose the word that best fits the theme “game” and has ${target.length} letters.`, difficulty, level }, solution: { word: target }, title: 'Choose the hidden word that matches the clue.' };
+  // The clue names the letter count, so no other candidate may share it.
+  const visible = unique.filter((word) => word.length !== target.length).slice(0, Math.max(2, normalizedDifficultyCount(difficulty) - 1 + levelExtra(level, 3)));
+  if (visible.length < 2) return null;
+  const choices = seededShuffle([target, ...visible], `word:${difficulty}:${level}`);
+  return { config: { choices, clue: `Which word is linked to “game” and has exactly ${target.length} letters?`, difficulty, level }, solution: { word: target }, title: 'Choose the hidden word that matches the clue.' };
 }
 
 async function buildExternalPuzzle(gameId, difficulty, level, fallback) {
   const payload = await fetchExternalJson(GAME_APIS[gameId]);
-  if (gameId === 'sudoku') {
-    const generated = await sourceMiniSudoku(fallback, payload);
-    if (!generated) throw new Error('Sudoku content is unavailable. Please retry.');
-    return generated;
-  }
-  const generated = gameId === 'quiz'
-    ? buildQuizFromApi(payload, difficulty, level)
-    : gameId === 'word'
-      ? buildWordFromApi(payload, difficulty, level)
-      : buildTriviaFromApi(payload, difficulty, level);
-  if (!generated) throw new Error(`${gameId} content is unavailable. Please retry.`);
-  return generated;
+  const generated = gameId === 'sudoku'
+    ? await sourceMiniSudoku(fallback, payload)
+    : gameId === 'quiz'
+      ? buildQuizFromApi(payload, difficulty, level)
+      : gameId === 'word'
+        ? buildWordFromApi(payload, difficulty, level)
+        : buildTriviaFromApi(payload, difficulty, level);
+  // A slow or rate-limited provider must not block play: use the built-in puzzle instead.
+  return generated || fallback;
 }
 
 function buildPuzzle(gameId, date, difficulty = 'easy', level = 1) {
@@ -344,24 +363,25 @@ function buildPuzzle(gameId, date, difficulty = 'easy', level = 1) {
       return { config: { size, symbolCount: 2, givens, difficulty: selectedDifficulty, level: selectedLevel }, solution: { cells }, title: 'Balance every row and column without three alike.' };
     }
     case 'quiz': {
-      const questions = [
+      // Correct choice first; shuffleQuestions moves it.
+      const { questions, answers } = shuffleQuestions([
         { id: 'quiz-fallback-1', question: 'Which planet is known as the Red Planet?', choices: ['Mars', 'Venus', 'Jupiter', 'Mercury'] },
-        { id: 'quiz-fallback-2', question: 'How many sides does a hexagon have?', choices: ['Five', 'Six', 'Seven', 'Eight'] },
+        { id: 'quiz-fallback-2', question: 'How many sides does a hexagon have?', choices: ['Six', 'Five', 'Seven', 'Eight'] },
         { id: 'quiz-fallback-3', question: 'What is H2O commonly called?', choices: ['Water', 'Salt', 'Oxygen', 'Steam'] },
-      ];
-      return { config: { questions, difficulty: selectedDifficulty, level: selectedLevel, timeLimit: 120 }, solution: { answers: [0, 1, 0] }, title: 'Answer the questions before the clock runs out.' };
+      ], `quiz-fallback:${date}:${selectedLevel}`);
+      return { config: { questions, difficulty: selectedDifficulty, level: selectedLevel, timeLimit: 120 }, solution: { answers }, title: 'Answer the questions before the clock runs out.' };
     }
     case 'trivia': {
-      const questions = [
+      const { questions, answers } = shuffleQuestions([
         { id: 'trivia-fallback-1', question: 'Which ocean is the largest?', choices: ['Pacific Ocean', 'Atlantic Ocean', 'Indian Ocean', 'Arctic Ocean'] },
         { id: 'trivia-fallback-2', question: 'What is the capital of Japan?', choices: ['Tokyo', 'Kyoto', 'Osaka', 'Sapporo'] },
         { id: 'trivia-fallback-3', question: 'Which animal is known for building dams?', choices: ['Beaver', 'Otter', 'Badger', 'Fox'] },
-      ];
-      return { config: { questions, difficulty: selectedDifficulty, level: selectedLevel, timeLimit: 120 }, solution: { answers: [0, 0, 0] }, title: 'Choose the best answer for every trivia question.' };
+      ], `trivia-fallback:${date}:${selectedLevel}`);
+      return { config: { questions, difficulty: selectedDifficulty, level: selectedLevel, timeLimit: 120 }, solution: { answers }, title: 'Choose the best answer for every trivia question.' };
     }
     case 'word': {
-      const choices = ['arcade', 'console', 'puzzle', 'quest'];
-      return { config: { choices, clue: 'Choose the word that best fits the theme “game” and has 6 letters.', difficulty: selectedDifficulty, level: selectedLevel }, solution: { word: 'arcade' }, title: 'Choose the hidden word that matches the clue.' };
+      const choices = seededShuffle(['arcade', 'console', 'quest', 'joystick'], `word-fallback:${date}:${selectedLevel}`);
+      return { config: { choices, clue: 'Which word is linked to “game” and has exactly 6 letters?', difficulty: selectedDifficulty, level: selectedLevel }, solution: { word: 'arcade' }, title: 'Choose the hidden word that matches the clue.' };
     }
     case 'wend': {
       const letters = ['C', 'A', 'T', 'D', 'O', 'G', 'S', 'E', 'R'];
@@ -384,7 +404,9 @@ function validateSubmission(gameId, submission, solution, puzzle) {
   if (!submission || typeof submission !== 'object') return { valid: false, reason: 'Finish the puzzle before submitting.' };
   if (gameId === 'quiz' || gameId === 'trivia') {
     const answers = submission.answers;
-    if (!Array.isArray(answers) || answers.length !== solution.answers.length || answers.some((answer, index) => Number(answer) !== Number(solution.answers[index]))) return { valid: false, reason: 'Answer every question correctly before submitting.' };
+    if (!Array.isArray(answers) || answers.length !== solution.answers.length) return { valid: false, reason: 'Answer every question before submitting.' };
+    const correct = answers.filter((answer, index) => Number(answer) === Number(solution.answers[index])).length;
+    if (correct !== solution.answers.length) return { valid: false, reason: `${correct} of ${solution.answers.length} answers are correct. Change the others and try again.`, details: { correct } };
     return { valid: true, reason: 'Correct.' };
   }
   if (gameId === 'word') {
@@ -460,7 +482,8 @@ function validateSubmission(gameId, submission, solution, puzzle) {
     for (let row = 0; row < 9; row += 1) { const line = cells.slice(row * 9, row * 9 + 9); if (new Set(line).size !== 9) return { valid: false, reason: 'Every Sudoku row must contain 1–9 exactly once.' }; }
     for (let col = 0; col < 9; col += 1) { const line = cells.filter((_, i) => i % 9 === col); if (new Set(line).size !== 9) return { valid: false, reason: 'Every Sudoku column must contain 1–9 exactly once.' }; }
     for (let boxRow = 0; boxRow < 9; boxRow += 3) for (let boxCol = 0; boxCol < 9; boxCol += 3) { const box = []; for (let r = 0; r < 3; r += 1) for (let c = 0; c < 3; c += 1) box.push(cells[(boxRow + r) * 9 + boxCol + c]); if (new Set(box).size !== 9) return { valid: false, reason: 'Every Sudoku box must contain 1–9 exactly once.' }; }
-    if (!same(cells, solution.cells)) return { valid: false, reason: 'That grid is valid, but it does not solve this puzzle.' };
+    // Any complete grid that keeps the clues and follows the rules is a solve;
+    // sparse boards can have more than one.
     return { valid: true, reason: 'Correct.' };
   }
   if (gameId === 'patches') {
@@ -509,14 +532,59 @@ async function ensureVariant(client, gameId, difficulty, level) {
   let generated = await buildExternalPuzzle(gameId, selectedDifficulty, selectedLevel, fallback);
   const publicPuzzle = { config: generated.config, title: generated.title };
   const seed = `${gameId}:${selectedDifficulty}:${selectedLevel}:${localDate()}`;
+  // When two requests race, keep the first puzzle and its solution together;
+  // overwriting only the puzzle would leave it checked against another puzzle's answers.
   const inserted = await client.query(
     `INSERT INTO hcm.daily_game_variants (game_id, difficulty, level_number, puzzle, solution, seed)
      VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6)
-     ON CONFLICT (game_id, difficulty, level_number) DO UPDATE SET puzzle = EXCLUDED.puzzle
+     ON CONFLICT (game_id, difficulty, level_number) DO NOTHING
      RETURNING puzzle_id, game_id, difficulty, level_number, puzzle, solution, seed`,
     [gameId, selectedDifficulty, selectedLevel, JSON.stringify(publicPuzzle), JSON.stringify(generated.solution), seed],
   );
-  return inserted.rows[0];
+  if (inserted.rows[0]) return inserted.rows[0];
+  return (await client.query(
+    'SELECT puzzle_id, game_id, difficulty, level_number, puzzle, solution, seed FROM hcm.daily_game_variants WHERE game_id = $1 AND difficulty = $2 AND level_number = $3',
+    [gameId, selectedDifficulty, selectedLevel],
+  )).rows[0];
+}
+
+/**
+ * What the hints used so far reveal: each hint removes one wrong quiz/trivia
+ * choice or word, or fills in one Sudoku cell. Returned with the puzzle too,
+ * so a refresh keeps them.
+ */
+function hintReveals(gameId, variant, hintsUsed) {
+  const count = Math.max(0, Math.min(Number(hintsUsed) || 0, 5));
+  const { config = {} } = variant.puzzle || {};
+  const solution = variant.solution || {};
+  if (!count) return null;
+  if (gameId === 'quiz' || gameId === 'trivia') {
+    const questions = config.questions || [];
+    const eliminated = {};
+    for (let hint = 0; hint < count && questions.length; hint += 1) {
+      const index = hint % questions.length;
+      const wrong = questions[index].choices.map((_, choice) => choice).filter((choice) => choice !== solution.answers?.[index] && !(eliminated[index] || []).includes(choice));
+      // Always leave at least two choices on the board.
+      if (wrong.length > 1) eliminated[index] = [...(eliminated[index] || []), wrong[seededNumber(`${variant.puzzle_id}:${hint}`) % wrong.length]];
+    }
+    return { eliminated };
+  }
+  if (gameId === 'word') {
+    const wrong = seededShuffle((config.choices || []).filter((word) => word !== solution.word), `${variant.puzzle_id}:word-hints`);
+    return { eliminatedWords: wrong.slice(0, Math.min(count, wrong.length - 1)) };
+  }
+  if (gameId === 'sudoku') {
+    const empty = seededShuffle((config.givens || []).map((value, index) => (value ? null : index)).filter((index) => index !== null), `${variant.puzzle_id}:sudoku-hints`);
+    return { cells: Object.fromEntries(empty.slice(0, count).map((index) => [index, solution.cells[index]])) };
+  }
+  return null;
+}
+
+function hintMessage(gameId, hintsUsed) {
+  if (gameId === 'quiz' || gameId === 'trivia') return `Hint ${hintsUsed}: one wrong answer has been removed.`;
+  if (gameId === 'word') return `Hint ${hintsUsed}: one wrong word has been crossed out.`;
+  if (gameId === 'sudoku') return `Hint ${hintsUsed}: one more cell has been filled in for you.`;
+  return 'Keep going — check the rule panel for your next move.';
 }
 
 function variantRequested(req) {
@@ -543,7 +611,7 @@ async function getVariantPuzzle(req, res, next) {
     const completion = (await client.query('SELECT points AS score, completion_ms, hints_used AS "hintsUsed", created_at FROM hcm.daily_game_variant_completions WHERE employee_id = $1 AND puzzle_id = $2', [id, variant.puzzle_id])).rows[0] || null;
     const game = (await client.query('SELECT id, title, difficulty, description, icon, color, minutes, max_points AS points, subtitle, rules, scoring FROM hcm.games WHERE id = $1', [gameId])).rows[0] || {};
     const progress = (await client.query('SELECT current_level AS "currentLevel", highest_level AS "highestLevel", total_completed AS "totalCompleted", total_points AS "totalPoints" FROM hcm.daily_game_progress WHERE employee_id = $1 AND game_id = $2 AND difficulty = $3', [id, gameId, difficulty])).rows[0] || { currentLevel: 1, highestLevel: 0, totalCompleted: 0, totalPoints: 0 };
-    res.json({ success: true, data: { game: { ...game, rules: game.rules || [], scoring: game.scoring || [], difficulty }, puzzle: publicVariant(variant), session: { maxHints: 5, ...(session || {}) }, completion, progress, maxLevel: MAX_LEVEL } });
+    res.json({ success: true, data: { game: { ...game, rules: game.rules || [], scoring: game.scoring || [], difficulty }, puzzle: publicVariant(variant), session: { maxHints: 5, ...(session || {}), reveals: hintReveals(gameId, variant, session?.hintsUsed) }, completion, progress, maxLevel: MAX_LEVEL } });
   } catch (err) { next(err); } finally { client.release(); }
 }
 
@@ -589,7 +657,7 @@ async function useVariantHint(req, res, next) {
     const result = await client.query(`UPDATE hcm.daily_game_variant_sessions SET hints_used = LEAST(hints_used + 1, 5), updated_at = CURRENT_TIMESTAMP WHERE employee_id = $1 AND puzzle_id = $2 RETURNING hints_used AS "hintsUsed"`, [id, variant.puzzle_id]);
     const hintsUsed = result.rows[0]?.hintsUsed || 0;
     const clues = req.params.gameId === 'pinpoint' ? (variant.puzzle.config?.clues || []).slice(0, hintsUsed) : undefined;
-    res.json({ success: true, data: { hintsUsed, ...(clues ? { clues } : {}), hint: clues ? `Clue ${hintsUsed} revealed.` : 'Keep going — check the rule panel for your next move.' } });
+    res.json({ success: true, data: { hintsUsed, reveals: hintReveals(req.params.gameId, variant, hintsUsed), ...(clues ? { clues } : {}), hint: clues ? `Clue ${hintsUsed} revealed.` : hintMessage(req.params.gameId, hintsUsed) } });
   } catch (err) { next(err); } finally { client.release(); }
 }
 
@@ -947,6 +1015,7 @@ exports.getCelebrations = async (req, res, next) => { try { res.json({ success: 
 exports.acknowledgeCelebration = async (req, res, next) => { try { res.json({ success: true }); } catch (err) { next(err); } };
 exports.validateSubmission = validateSubmission;
 exports.buildPuzzle = buildPuzzle;
+exports.hintReveals = hintReveals;
 exports.computeStreakState = computeStreakState;
 exports.recordStreakAward = recordStreakAward;
 exports.statsFor = statsFor;
