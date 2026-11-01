@@ -101,6 +101,16 @@ async function initDb() {
     `);
     // Links an "Upcoming event" notification to its event so it goes when the event is deleted.
     await client.query('ALTER TABLE hcm.notifications ADD COLUMN IF NOT EXISTS event_id INTEGER;');
+    // Read state for notifications sent to everyone (employee_id IS NULL), kept per viewer
+    // so one person opening it does not mark it read for the whole company.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS hcm.notification_reads (
+        notification_id INTEGER NOT NULL,
+        viewer_id INTEGER NOT NULL,
+        read_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (notification_id, viewer_id)
+      );
+    `);
 
     // 6. Durable per-user birthday notification read state
     await client.query(`

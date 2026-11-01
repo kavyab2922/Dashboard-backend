@@ -1,6 +1,7 @@
 const { query } = require('../config/db');
 const redis = require('../config/redis');
 const logger = require('../config/logger');
+const { viewerId: viewerIdFor } = require('../utils/viewerId');
 
 const COLORS = ['blue', 'purple', 'mint', 'gold', 'rose', 'slate'];
 
@@ -102,7 +103,7 @@ exports.getTodaysBirthdays = async (req, res, next) => {
   try {
     const month = Number(req.query.month);
     const day = Number(req.query.day);
-    const viewerId = Number(req.user?.id);
+    const viewerId = viewerIdFor(req.user);
 
     if (
       !Number.isInteger(month) ||
@@ -191,7 +192,7 @@ exports.getTodaysBirthdays = async (req, res, next) => {
 // Mark one of today's birthday notifications as read for the signed-in employee.
 exports.markBirthdayRead = async (req, res, next) => {
   try {
-    const viewerId = Number(req.user?.id);
+    const viewerId = viewerIdFor(req.user);
     const birthdayEmployeeId = Number(req.params.employeeId);
     if (!Number.isInteger(viewerId) || !Number.isInteger(birthdayEmployeeId)) {
       return res.status(400).json({ success: false, message: 'Valid employee IDs are required.' });
@@ -227,7 +228,7 @@ exports.markBirthdayRead = async (req, res, next) => {
 
 exports.markAllBirthdaysRead = async (req, res, next) => {
   try {
-    const viewerId = Number(req.user?.id);
+    const viewerId = viewerIdFor(req.user);
     const birthdayEmployeeIds = Array.isArray(req.body?.employeeIds)
       ? req.body.employeeIds
         .map((id) => Number(id))

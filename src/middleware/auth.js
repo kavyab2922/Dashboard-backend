@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const logger = require('../config/logger');
+const { checkAllowedNetwork } = require('./network');
 const { bucketName, region } = require('../config/s3');
 
 // Sign-in is SSO-only, so a guessable secret would let anyone forge a session.
@@ -9,7 +10,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) throw new Error('JWT_SECRET must be set');
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 
-function authenticate(req, res, next) {
+async function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ success: false, message: 'Authentication required' });
@@ -18,11 +19,21 @@ function authenticate(req, res, next) {
   const token = authHeader.slice('Bearer '.length).trim();
   try {
     req.user = jwt.verify(token, JWT_SECRET);
-    return next();
   } catch (err) {
     logger.warn('Invalid JWT token: ' + err.message);
     return res.status(401).json({ success: false, message: 'Session expired. Please sign in again.' });
   }
+
+  // A session only lasts while the user stays on the office Wi-Fi or VPN;
+  // switching to another network ends it.
+  try {
+    if (!(await checkAllowedNetwork(req, 'Session ended'))) {
+      return res.status(401).json({ success: false, code: 'network', message: 'Available only on the company network.' });
+    }
+  } catch (err) {
+    return next(err);
+  }
+  return next();
 }
 
 function generateToken(payload) {

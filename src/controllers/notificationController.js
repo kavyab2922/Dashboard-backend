@@ -1,9 +1,15 @@
 const { query } = require('../config/db');
+const { viewerId, employeeRecordId } = require('../utils/viewerId');
 
 // created_at is TIMESTAMP WITHOUT TIME ZONE written in the database session's
 // zone; node-postgres would read it as local (IST) time and shift it by hours.
-const NOTIFICATION_COLUMNS = `id, title, detail, type, read, time,
-  (created_at AT TIME ZONE current_setting('TimeZone')) AS created_at`;
+// A notification sent to everyone is read when this viewer marked it, or when it was
+// marked under the old company-wide flag; personal ones use their own read column.
+const NOTIFICATION_COLUMNS = `n.id, n.title, n.detail, n.type, n.time,
+  CASE WHEN n.employee_id IS NULL
+    THEN COALESCE(n.read, false) OR EXISTS (SELECT 1 FROM hcm.notification_reads r WHERE r.notification_id = n.id AND r.viewer_id = $1)
+    ELSE COALESCE(n.read, false) END AS read,
+  (n.created_at AT TIME ZONE current_setting('TimeZone')) AS created_at`;
 
 // Hide "Upcoming event" notifications whose event has been deleted. Older rows have
 // no event_id, so they are matched by the "<title> · <YYYY-MM-DD> at" text they start with.
@@ -13,27 +19,14 @@ const EXISTING_EVENTS_ONLY = `NOT (n.type = 'event' AND (
         AND NOT EXISTS (SELECT 1 FROM hcm.events e WHERE n.detail LIKE e.title || ' · ' || TO_CHAR(e.date, 'YYYY-MM-DD') || ' at %'))
   ))`;
 
-function employeeIdFromRequest(req) {
-  const value = Number(req.user?.id);
-  return Number.isInteger(value) && value > 0 ? value : null;
-}
-
 exports.getAllNotifications = async (req, res, next) => {
   try {
-    const employeeId = employeeIdFromRequest(req);
-    const result = employeeId === null
-      ? await query(`
-          SELECT ${NOTIFICATION_COLUMNS}
-          FROM hcm.notifications n
-          WHERE n.employee_id IS NULL AND ${EXISTING_EVENTS_ONLY}
-          ORDER BY n.id DESC
-        `)
-      : await query(`
-          SELECT ${NOTIFICATION_COLUMNS}
-          FROM hcm.notifications n
-          WHERE (n.employee_id = $1 OR n.employee_id IS NULL) AND ${EXISTING_EVENTS_ONLY}
-          ORDER BY n.id DESC
-        `, [employeeId]);
+    const result = await query(`
+      SELECT ${NOTIFICATION_COLUMNS}
+      FROM hcm.notifications n
+      WHERE (n.employee_id IS NULL OR n.employee_id = $2) AND ${EXISTING_EVENTS_ONLY}
+      ORDER BY n.id DESC
+    `, [viewerId(req.user), employeeRecordId(req.user)]);
 
     const data = result.rows.map(row => ({
       ...row,
@@ -46,16 +39,28 @@ exports.getAllNotifications = async (req, res, next) => {
   }
 };
 
+// Marks the given notifications read for this viewer: personal ones on the row,
+// company-wide ones in hcm.notification_reads.
+async function markNotificationsRead(req, ids) {
+  if (!ids.length) return 0;
+  const personal = await query(
+    'UPDATE hcm.notifications SET read = true WHERE id = ANY($1::int[]) AND employee_id = $2 AND COALESCE(read, false) = false',
+    [ids, employeeRecordId(req.user)]
+  );
+  const shared = await query(
+    `INSERT INTO hcm.notification_reads (notification_id, viewer_id)
+     SELECT id, $2 FROM hcm.notifications WHERE id = ANY($1::int[]) AND employee_id IS NULL
+     ON CONFLICT DO NOTHING`,
+    [ids, viewerId(req.user)]
+  );
+  return personal.rowCount + shared.rowCount;
+}
+
 exports.markRead = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const employeeId = employeeIdFromRequest(req);
-    if (employeeId !== null) {
-      await query(
-        'UPDATE hcm.notifications SET read = true WHERE id = $1 AND (employee_id = $2 OR employee_id IS NULL)',
-        [id, employeeId]
-      );
-    }
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) return res.status(400).json({ success: false, message: 'Valid notification ID is required.' });
+    await markNotificationsRead(req, [id]);
     res.json({ success: true, message: 'Notification marked as read' });
   } catch (err) {
     next(err);
@@ -64,28 +69,11 @@ exports.markRead = async (req, res, next) => {
 
 exports.markAllRead = async (req, res, next) => {
   try {
-    const employeeId = employeeIdFromRequest(req);
     const notificationIds = Array.isArray(req.body?.notificationIds)
-      ? req.body.notificationIds
-        .map((id) => Number(id))
-        .filter((id) => Number.isInteger(id))
+      ? req.body.notificationIds.map((id) => Number(id)).filter((id) => Number.isInteger(id))
       : [];
-
-    if (employeeId === null || !notificationIds.length) {
-      return res.json({ success: true, data: { updated: 0 } });
-    }
-
-    const result = await query(
-      `
-        UPDATE hcm.notifications
-        SET read = true
-        WHERE id = ANY($1::int[])
-          AND (employee_id = $2 OR employee_id IS NULL)
-          AND COALESCE(read, false) = false
-      `,
-      [notificationIds, employeeId]
-    );
-    res.json({ success: true, data: { updated: result.rowCount } });
+    const updated = await markNotificationsRead(req, notificationIds);
+    res.json({ success: true, data: { updated } });
   } catch (err) {
     next(err);
   }

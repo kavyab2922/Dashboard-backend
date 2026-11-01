@@ -65,6 +65,8 @@ router.get('/auth/sso/start', requireAllowedNetwork, ssoController.start);
 router.get('/auth/sso/callback', requireAllowedNetwork, ssoController.callback);
 router.post('/auth/login', requireAllowedNetwork, loginController.passwordLogin);
 router.get('/auth/me', authenticate, authController.getMe);
+// Polled by the browser so leaving the office network signs the user out right away.
+router.get('/auth/network-check', authenticate, (req, res) => res.json({ success: true }));
 router.get('/profile', authenticate, authController.getMe);
 router.put('/profile', authenticate, employeeController.updateProfile);
 

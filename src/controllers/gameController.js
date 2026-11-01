@@ -1,4 +1,5 @@
 const { pool, query } = require('../config/db');
+const { viewerId } = require('../utils/viewerId');
 
 const GAME_ORDER = ['sudoku', 'quiz', 'word', 'trivia'];
 const GAME_APIS = {
@@ -94,12 +95,7 @@ async function recordStreakAward(client, id, date, points) {
 }
 
 function employeeId(req) {
-  const raw = Number(req.user?.id);
-  if (Number.isInteger(raw) && raw > 0) return raw;
-  const identity = String(req.user?.email || req.user?.official_email || req.user?.employee_code || req.user?.id || 'employee');
-  let hash = 0;
-  for (const char of identity) hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
-  return Math.abs(hash) || 1;
+  return viewerId(req.user);
 }
 
 function employeeKey(req) {

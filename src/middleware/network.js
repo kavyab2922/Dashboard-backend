@@ -101,12 +101,12 @@ async function getPublicIp(localIps) {
   return ip;
 }
 
-// Sign-in is only allowed from the office Wi-Fi or VPN. Without a configured
-// list everyone is blocked.
-async function requireAllowedNetwork(req, res, next) {
+// True when the request comes from the office Wi-Fi or VPN. Without a configured
+// list everyone is refused. `action` only labels the log lines.
+async function checkAllowedNetwork(req, action = 'Sign-in blocked') {
   if (allowCount === 0) {
-    logger.error('ALLOWED_IP_RANGES is empty; blocking sign-in.');
-    return blockSignIn(req, res);
+    logger.error(`ALLOWED_IP_RANGES is empty; ${action.toLowerCase()}.`);
+    return false;
   }
 
   let ip = normalizeIp(req.ip);
@@ -114,20 +114,26 @@ async function requireAllowedNetwork(req, res, next) {
     // A connected VPN shows up as a local adapter holding a VPN-pool address,
     // even on split tunnel where the public IP is still the home/hotspot one.
     const localIps = localInterfaceIps();
-    if (localIps.some(isAllowedIp)) return next();
+    if (localIps.some(isAllowedIp)) return true;
     try {
       ip = await getPublicIp(localIps);
     } catch (err) {
-      logger.warn(`Sign-in blocked: could not determine the public IP (${err.message})`);
-      return blockSignIn(req, res);
+      logger.warn(`${action}: could not determine the public IP (${err.message})`);
+      return false;
     }
-    if (isAllowedIp(ip)) return next();
-    logger.warn(`Sign-in blocked from outside the office network or VPN: public ${ip}, local ${localIps.join(', ') || 'none'}`);
-    return blockSignIn(req, res);
+    if (isAllowedIp(ip)) return true;
+    logger.warn(`${action} outside the office network or VPN: public ${ip}, local ${localIps.join(', ') || 'none'}`);
+    return false;
   }
 
-  if (isAllowedIp(ip)) return next();
-  logger.warn(`Sign-in blocked from outside the office network or VPN: ${ip}`);
+  if (isAllowedIp(ip)) return true;
+  logger.warn(`${action} outside the office network or VPN: ${ip}`);
+  return false;
+}
+
+// Sign-in is only allowed from the office Wi-Fi or VPN.
+async function requireAllowedNetwork(req, res, next) {
+  if (await checkAllowedNetwork(req)) return next();
   return blockSignIn(req, res);
 }
 
@@ -138,4 +144,4 @@ function localInterfaceIps() {
     .map((iface) => iface.address);
 }
 
-module.exports = { requireAllowedNetwork, isAllowedIp };
+module.exports = { requireAllowedNetwork, checkAllowedNetwork, isAllowedIp };
