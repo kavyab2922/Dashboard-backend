@@ -117,7 +117,12 @@ async function startServer() {
       logger.info(`API Base URL: ${process.env.BACKEND_URL || `http://localhost:${PORT}/api`}`);
     });
   } catch (err) {
-    logger.error('Failed to start server:', err);
+    if (errorHandler.DB_UNREACHABLE_CODES.has(err.code)) {
+      // Usually not on the office network or VPN; the stack trace adds nothing.
+      logger.error(`Failed to start server: network error - ${errorHandler.DB_UNREACHABLE_MESSAGE} (${err.code} ${err.address || ''}${err.port ? `:${err.port}` : ''})`);
+    } else {
+      logger.error('Failed to start server:', err);
+    }
     process.exit(1);
   }
 }

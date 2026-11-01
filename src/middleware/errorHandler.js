@@ -2,6 +2,7 @@ const logger = require('../config/logger');
 
 // Network errors from the database driver when the DB host can't be reached (e.g. VPN down).
 const DB_UNREACHABLE_CODES = new Set(['ETIMEDOUT', 'ECONNREFUSED', 'ENOTFOUND', 'EHOSTUNREACH', 'ENETUNREACH']);
+const DB_UNREACHABLE_MESSAGE = 'The HR Orbit database is unreachable right now. Check your VPN or network connection and try again.';
 
 function errorHandler(err, req, res, next) {
   logger.error('Unhandled API Error: ' + err.message, { stack: err.stack, path: req.path });
@@ -18,7 +19,7 @@ function errorHandler(err, req, res, next) {
   res.status(statusCode).json({
     success: false,
     message: dbUnreachable
-      ? 'The HR Orbit database is unreachable right now. Check your VPN or network connection and try again.'
+      ? DB_UNREACHABLE_MESSAGE
       : fileTooLarge
         ? 'File is too large. The maximum upload size is 10 MB.'
         : clientMessage,
@@ -27,3 +28,5 @@ function errorHandler(err, req, res, next) {
 }
 
 module.exports = errorHandler;
+module.exports.DB_UNREACHABLE_CODES = DB_UNREACHABLE_CODES;
+module.exports.DB_UNREACHABLE_MESSAGE = DB_UNREACHABLE_MESSAGE;
