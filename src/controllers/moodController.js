@@ -59,17 +59,64 @@ function publicEmployee(row, includeIdentity = true) {
 }
 
 async function moodVisibleTo(employee, moodId) {
+  if (!Number.isInteger(Number(employee)) || !Number.isInteger(Number(moodId))) return false;
   const result = await query(`
-    SELECT 1 FROM hcm.mood_checkins m
-    WHERE m.id = $1 AND (
-      m.employee_id = $2 OR m.visibility = 'colleagues' OR
-      (m.visibility = 'selected' AND EXISTS (
-        SELECT 1 FROM hcm.mood_checkin_recipients r
-        WHERE r.mood_checkin_id = m.id AND r.employee_id = $2
-      ))
-    )
-  `, [moodId, employee]);
+    SELECT 1
+    FROM hcm.mood_checkins m
+    WHERE m.id = $1
+      AND (
+        m.employee_id = $2
+        OR m.visibility = 'colleagues'
+        OR (
+          m.visibility = 'selected'
+          AND EXISTS (
+            SELECT 1
+            FROM hcm.mood_checkin_recipients r
+            WHERE r.mood_checkin_id = m.id
+              AND r.employee_id = $2
+          )
+        )
+      )
+  `, [Number(moodId), Number(employee)]);
   return result.rowCount > 0;
+}
+
+async function moodOwner(moodId) {
+  const result = await query(`
+    SELECT id, employee_id, mood, visibility
+    FROM hcm.mood_checkins
+    WHERE id = $1
+  `, [moodId]);
+  return result.rows[0] || null;
+}
+
+function interactionNotificationDetail(actorName, action, moodId, message = '') {
+  const suffix = message ? `: "${message}"` : '';
+  return `${actorName} ${action} your Colleagues' Moments update (moment ${moodId})${suffix}`;
+}
+
+async function employeeName(employee) {
+  const result = await query(`
+    SELECT TRIM(CONCAT(first_name, ' ', last_name)) AS name
+    FROM hcm.employees
+    WHERE id = $1
+  `, [employee]);
+  return result.rows[0]?.name || 'A colleague';
+}
+
+function parseMoodId(value) {
+  const id = Number(value);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
+function reactionSummary(rows) {
+  const grouped = {};
+  for (const row of rows) {
+    const moodId = String(row.mood_checkin_id);
+    grouped[moodId] ||= [];
+    grouped[moodId].push({ reaction: row.reaction, count: Number(row.count), likedByViewer: Boolean(row.liked_by_viewer) });
+  }
+  return grouped;
 }
 
 function moodResponse(row, reactions = []) {
@@ -206,39 +253,98 @@ exports.getTeamMoods = async (req, res, next) => {
         AND m.submitted_at >= CURRENT_TIMESTAMP - INTERVAL '7 days'
       ORDER BY m.submitted_at DESC LIMIT 100
     `, [id]);
-    const reactions = await query(`SELECT mood_checkin_id, reaction, COUNT(*)::int AS count FROM hcm.mood_reactions GROUP BY mood_checkin_id, reaction`);
-    const grouped = reactions.rows.reduce((all, row) => ({ ...all, [row.mood_checkin_id]: [...(all[row.mood_checkin_id] || []), { reaction: row.reaction, count: row.count }] }), {});
-    res.json({ success: true, data: moods.rows.map((row) => moodResponse(row, row.identity_allowed)).map((item) => ({ ...item, reactions: grouped[item.id] || [] })) });
+    const reactions = await query(`
+      SELECT mood_checkin_id, reaction, COUNT(*)::int AS count,
+             BOOL_OR(employee_id = $1) AS liked_by_viewer
+      FROM hcm.mood_reactions
+      WHERE mood_checkin_id IN (SELECT id FROM hcm.mood_checkins WHERE employee_id = $1 OR visibility = 'colleagues' OR EXISTS (SELECT 1 FROM hcm.mood_checkin_recipients r WHERE r.mood_checkin_id = hcm.mood_checkins.id AND r.employee_id = $1))
+      GROUP BY mood_checkin_id, reaction
+    `, [id]);
+    const grouped = reactionSummary(reactions.rows);
+    const likes = await query(`
+      SELECT mood_checkin_id, COUNT(*)::int AS like_count,
+             BOOL_OR(employee_id = $1) AS liked_by_viewer
+      FROM hcm.mood_reactions
+      WHERE reaction = '❤️'
+      GROUP BY mood_checkin_id
+    `, [id]);
+    const likeMap = Object.fromEntries(likes.rows.map((row) => [String(row.mood_checkin_id), row]));
+    res.json({ success: true, data: moods.rows.map((row) => {
+      const item = moodResponse(row, row.identity_allowed);
+      const like = likeMap[item.id] || { like_count: 0, liked_by_viewer: false };
+      return { ...item, reactions: grouped[item.id] || [], likeCount: Number(like.like_count), likedByViewer: Boolean(like.liked_by_viewer) };
+    }) });
   } catch (err) { next(err); }
 };
 
 exports.addReaction = async (req, res, next) => {
   try {
-    const sender = await employeeId(req); const moodId = Number(req.params.id); const reaction = String(req.body?.reaction || '');
-    if (!sender || !REACTIONS.has(reaction) || !(await moodVisibleTo(sender, moodId))) return res.status(400).json({ success: false, message: 'That reaction is not available.' });
-    const owner = await query('SELECT employee_id FROM hcm.mood_checkins WHERE id = $1', [moodId]);
-    if (!owner.rows[0] || owner.rows[0].employee_id === sender) return res.status(400).json({ success: false, message: 'You cannot react to your own mood.' });
+    const sender = await employeeId(req);
+    const moodId = parseMoodId(req.params.id);
+    const reaction = String(req.body?.reaction || '');
+    if (!sender || !moodId || !REACTIONS.has(reaction) || !(await moodVisibleTo(sender, moodId))) return res.status(400).json({ success: false, message: 'That reaction is not available.' });
+    const owner = await moodOwner(moodId);
+    if (!owner || owner.employee_id === sender) return res.status(400).json({ success: false, message: 'You cannot react to your own mood.' });
     const inserted = await query('INSERT INTO hcm.mood_reactions (mood_checkin_id, employee_id, reaction) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING RETURNING id', [moodId, sender, reaction]);
-    if (inserted.rowCount) {
-      await query(`INSERT INTO hcm.notifications (employee_id, title, detail, type, time) VALUES ($1, 'A colleague reacted to your mood', $2, 'mood-reaction', 'Just now')`, [owner.rows[0].employee_id, `${reaction} Someone sent a reaction to your shared mood.`]);
+    if (inserted.rowCount && reaction !== '❤️') {
+      const actor = await employeeName(sender);
+      await query(`INSERT INTO hcm.notifications (employee_id, title, detail, type, time) VALUES ($1, $2, $3, 'mood-reaction', 'Just now')`, [owner.employee_id, `${actor} reacted to your mood`, interactionNotificationDetail(actor, 'reacted to', moodId)]);
     }
-    res.json({ success: true });
+    res.json({ success: true, data: { added: Boolean(inserted.rowCount) } });
   } catch (err) { next(err); }
 };
 
-exports.sendMessage = async (req, res, next) => {
+exports.toggleLike = async (req, res, next) => {
+  const client = await require('../config/db').pool.connect();
   try {
-    const sender = await employeeId(req); const moodId = Number(req.params.id); const kind = req.body?.kind === 'support' ? 'support' : 'celebration';
+    const sender = await employeeId(req);
+    const moodId = parseMoodId(req.params.id);
+    if (!sender || !moodId || !(await moodVisibleTo(sender, moodId))) return res.status(400).json({ success: false, message: 'That moment is not available.' });
+    const owner = await moodOwner(moodId);
+    if (!owner || owner.employee_id === sender) return res.status(400).json({ success: false, message: 'You cannot like your own moment.' });
+    await client.query('BEGIN');
+    const existing = await client.query('SELECT 1 FROM hcm.mood_reactions WHERE mood_checkin_id = $1 AND employee_id = $2 AND reaction = \'❤️\' FOR UPDATE', [moodId, sender]);
+    let liked;
+    if (existing.rowCount) {
+      await client.query('DELETE FROM hcm.mood_reactions WHERE mood_checkin_id = $1 AND employee_id = $2 AND reaction = \'❤️\'', [moodId, sender]);
+      liked = false;
+    } else {
+      const inserted = await client.query('INSERT INTO hcm.mood_reactions (mood_checkin_id, employee_id, reaction) VALUES ($1, $2, \'❤️\') ON CONFLICT DO NOTHING RETURNING id', [moodId, sender]);
+      liked = Boolean(inserted.rowCount);
+      if (inserted.rowCount) {
+        const actor = await employeeName(sender);
+        await client.query(`INSERT INTO hcm.notifications (employee_id, title, detail, type, time) SELECT $1, $2, $3, 'mood-like', 'Just now' WHERE NOT EXISTS (SELECT 1 FROM hcm.notifications WHERE employee_id = $1 AND type = 'mood-like' AND detail = $3)`, [owner.employee_id, `${actor} liked your moment`, interactionNotificationDetail(actor, 'liked', moodId)]);
+      }
+    }
+    const count = await client.query('SELECT COUNT(*)::int AS count FROM hcm.mood_reactions WHERE mood_checkin_id = $1 AND reaction = \'❤️\'', [moodId]);
+    await client.query('COMMIT');
+    res.json({ success: true, data: { liked, likeCount: count.rows[0].count } });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    next(err);
+  } finally { client.release(); }
+};
+
+exports.sendMessage = async (req, res, next) => {
+  const client = await require('../config/db').pool.connect();
+  try {
+    const sender = await employeeId(req); const moodId = parseMoodId(req.params.id); const owner = moodId ? await moodOwner(moodId) : null;
+    const kind = req.body?.kind === 'support' ? 'support' : 'celebration';
     const message = cleanText(req.body?.message);
-    if (!sender || !message || message.length > 500 || !(await moodVisibleTo(sender, moodId))) return res.status(400).json({ success: false, message: 'Enter a valid message for a shared mood.' });
-    const owner = await query('SELECT employee_id, mood FROM hcm.mood_checkins WHERE id = $1', [moodId]);
-    if (!owner.rows[0] || (kind === 'support' && !['sad', 'stressed'].includes(owner.rows[0].mood)) || (kind === 'celebration' && !['amazing', 'happy'].includes(owner.rows[0].mood))) return res.status(400).json({ success: false, message: 'That message type is not available for this mood.' });
+    if (!sender || !moodId || !message || !(await moodVisibleTo(sender, moodId))) return res.status(400).json({ success: false, message: 'Enter a valid message for a shared mood.' });
+    if (!owner || (kind === 'support' && !['sad', 'stressed'].includes(owner.mood)) || (kind === 'celebration' && !['amazing', 'happy'].includes(owner.mood))) return res.status(400).json({ success: false, message: 'That message type is not available for this mood.' });
     if (kind === 'support' && !SUPPORT_MESSAGES.has(message) && !req.body?.custom) return res.status(400).json({ success: false, message: 'Choose a supportive message or write your own.' });
-    if (!owner.rows[0] || owner.rows[0].employee_id === sender) return res.status(400).json({ success: false, message: 'You cannot message your own mood.' });
-    await query('INSERT INTO hcm.mood_messages (mood_checkin_id, sender_id, recipient_id, kind, message, offer_to_chat) VALUES ($1, $2, $3, $4, $5, $6)', [moodId, sender, owner.rows[0].employee_id, kind, message, Boolean(req.body?.offerToChat)]);
-    await query(`INSERT INTO hcm.notifications (employee_id, title, detail, type, time) VALUES ($1, $2, $3, $4, 'Just now')`, [owner.rows[0].employee_id, kind === 'support' ? 'Someone sent you some sunshine' : 'Someone is celebrating with you', kind === 'support' ? 'A private supportive message is waiting for you.' : 'A colleague sent a celebration message.', `mood-${kind}`]);
-    res.status(201).json({ success: true });
-  } catch (err) { next(err); }
+    if (owner.employee_id === sender) return res.status(400).json({ success: false, message: 'You cannot message your own mood.' });
+    const actor = await employeeName(sender);
+    await client.query('BEGIN');
+    const inserted = await client.query('INSERT INTO hcm.mood_messages (mood_checkin_id, sender_id, recipient_id, kind, message, offer_to_chat) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created_at', [moodId, sender, owner.employee_id, kind, message, Boolean(req.body?.offerToChat)]);
+    await client.query(`INSERT INTO hcm.notifications (employee_id, title, detail, type, time) VALUES ($1, $2, $3, $4, 'Just now')`, [owner.employee_id, `${actor} commented on your moment`, interactionNotificationDetail(actor, 'commented on', moodId, message), 'mood-comment']);
+    await client.query('COMMIT');
+    res.status(201).json({ success: true, data: { id: String(inserted.rows[0].id), createdAt: inserted.rows[0].created_at } });
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    next(err);
+  } finally { client.release(); }
 };
 
 exports.getMessages = async (req, res, next) => {
@@ -246,8 +352,8 @@ exports.getMessages = async (req, res, next) => {
     const id = await employeeId(req);
     if (!id) return res.status(403).json({ success: false, message: 'A local employee identity is required.' });
     const messages = await query(`
-      SELECT m.id, m.kind, m.message, m.offer_to_chat, m.chat_status, m.created_at,
-             sender.first_name AS sender_first_name, sender.last_name AS sender_last_name,
+      SELECT m.id, m.mood_checkin_id, m.kind, m.message, m.offer_to_chat, m.chat_status, m.created_at,
+             sender.id AS sender_id, sender.first_name AS sender_first_name, sender.last_name AS sender_last_name, sender.profile_picture_url AS sender_avatar,
              recipient.first_name AS recipient_first_name, recipient.last_name AS recipient_last_name
       FROM hcm.mood_messages m
       JOIN hcm.employees sender ON sender.id = m.sender_id
@@ -256,9 +362,9 @@ exports.getMessages = async (req, res, next) => {
       ORDER BY m.created_at DESC LIMIT 100
     `, [id]);
     res.json({ success: true, data: messages.rows.map((row) => ({
-      id: String(row.id), kind: row.kind, message: row.message,
+      id: String(row.id), moodId: String(row.mood_checkin_id), kind: row.kind, message: row.message,
       offerToChat: row.offer_to_chat, chatStatus: row.chat_status, createdAt: row.created_at,
-      sender: `${row.sender_first_name || ''} ${row.sender_last_name || ''}`.trim(),
+      sender: { id: String(row.sender_id), name: `${row.sender_first_name || ''} ${row.sender_last_name || ''}`.trim(), avatar: row.sender_avatar || null },
       recipient: `${row.recipient_first_name || ''} ${row.recipient_last_name || ''}`.trim(),
     })) });
   } catch (err) { next(err); }

@@ -2,6 +2,27 @@ require('dotenv').config();
 const { pool } = require('../config/db');
 const logger = require('../config/logger');
 
+const CHATBOT_CHUNK_SIZE = 1400;
+const CHATBOT_CHUNK_OVERLAP = 180;
+
+function splitChatbotDocument(text) {
+  const clean = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!clean) return [];
+  const chunks = [];
+  let start = 0;
+  while (start < clean.length) {
+    let end = Math.min(start + CHATBOT_CHUNK_SIZE, clean.length);
+    if (end < clean.length) {
+      const boundary = clean.lastIndexOf('. ', end);
+      if (boundary > start + CHATBOT_CHUNK_SIZE * 0.6) end = boundary + 1;
+    }
+    chunks.push(clean.slice(start, end).trim());
+    if (end >= clean.length) break;
+    start = Math.max(end - CHATBOT_CHUNK_OVERLAP, start + 1);
+  }
+  return chunks;
+}
+
 async function initDb() {
   const client = await pool.connect();
   try {
@@ -136,7 +157,50 @@ async function initDb() {
       );
     `);
 
-    // 8. Games table
+    // 8. Chatbot documents and persistent retrieval chunks
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS hcm.chatbot_documents (
+        id BIGSERIAL PRIMARY KEY,
+        file_name VARCHAR(255) NOT NULL,
+        file_type VARCHAR(100) NOT NULL,
+        file_data BYTEA NOT NULL,
+        extracted_text TEXT NOT NULL,
+        uploaded_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE TABLE IF NOT EXISTS hcm.chatbot_document_chunks (
+        id BIGSERIAL PRIMARY KEY,
+        document_id BIGINT NOT NULL REFERENCES hcm.chatbot_documents(id) ON DELETE CASCADE,
+        chunk_index INTEGER NOT NULL,
+        chunk_text TEXT NOT NULL,
+        search_vector TSVECTOR GENERATED ALWAYS AS (to_tsvector('simple', chunk_text)) STORED,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (document_id, chunk_index)
+      );
+      CREATE INDEX IF NOT EXISTS chatbot_document_chunks_document_idx
+        ON hcm.chatbot_document_chunks (document_id, chunk_index);
+      CREATE INDEX IF NOT EXISTS chatbot_document_chunks_search_idx
+        ON hcm.chatbot_document_chunks USING GIN (search_vector);
+    `);
+
+    const unindexedDocuments = await client.query(`
+      SELECT d.id, d.extracted_text
+      FROM hcm.chatbot_documents d
+      WHERE NOT EXISTS (
+        SELECT 1 FROM hcm.chatbot_document_chunks c WHERE c.document_id = d.id
+      )
+    `);
+    for (const document of unindexedDocuments.rows) {
+      const chunks = splitChatbotDocument(document.extracted_text);
+      for (const [index, chunk] of chunks.entries()) {
+        await client.query(`
+          INSERT INTO hcm.chatbot_document_chunks (document_id, chunk_index, chunk_text)
+          VALUES ($1, $2, $3)
+          ON CONFLICT (document_id, chunk_index) DO NOTHING
+        `, [document.id, index, chunk]);
+      }
+    }
+
+    // 9. Games table
     await client.query(`
       CREATE TABLE IF NOT EXISTS hcm.games (
         id VARCHAR(100) PRIMARY KEY,

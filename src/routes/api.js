@@ -1,5 +1,17 @@
 const express = require('express');
+const multer = require('multer');
 const router = express.Router();
+
+const chatbotUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: parseInt(process.env.CHATBOT_MAX_FILE_SIZE || String(10 * 1024 * 1024), 10) },
+  fileFilter: (req, file, callback) => {
+    if (file.mimetype !== 'application/pdf') {
+      return callback(new multer.MulterError('LIMIT_UNEXPECTED_FILE', 'file'));
+    }
+    callback(null, true);
+  },
+});
 
 const {
   authenticate,
@@ -21,6 +33,8 @@ const gameController = require('../controllers/gameController');
 const dashboardController = require('../controllers/dashboardController');
 const moodController = require('../controllers/moodController');
 const uploadController = require('../controllers/uploadController');
+const chatbotController = require('../controllers/chatbotController');
+const chatbotDocumentController = require('../controllers/chatbotDocumentController');
 
 const { pool } = require('../config/db');
 const redis = require('../config/redis');
@@ -288,6 +302,12 @@ router.post(
   gameController.acknowledgeCelebration
 );
 
+// Orbit Assistant
+router.post('/chatbot/ask', authenticate, chatbotController.askChatbot);
+router.get('/chatbot/employees-on-leave', authenticate, chatbotController.getEmployeesOnLeave);
+router.post('/chatbot/documents', authenticate, chatbotUpload.single('file'), chatbotDocumentController.uploadDocument);
+router.get('/chatbot/documents', authenticate, chatbotDocumentController.listDocuments);
+
 // Dashboard summary
 router.get(
   '/dashboard/summary',
@@ -318,6 +338,12 @@ router.post(
   '/moods/:id/reactions',
   authenticate,
   moodController.addReaction
+);
+
+router.post(
+  '/moods/:id/like',
+  authenticate,
+  moodController.toggleLike
 );
 
 router.post(

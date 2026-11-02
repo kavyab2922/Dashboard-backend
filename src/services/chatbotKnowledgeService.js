@@ -108,27 +108,106 @@ function docChunks(text, size = 1400, overlap = 180) {
   return chunks;
 }
 
+const TERM_ALIASES = {
+  cl: ['casual', 'leave'],
+  sl: ['sick', 'leave'],
+  pto: ['leave', 'time', 'off'],
+  lop: ['loss', 'pay'],
+  payslip: ['pay', 'salary'],
+  appraisal: ['performance', 'review'],
+  conduct: ['behavior', 'behaviour', 'ethics', 'discipline'],
+  behaviour: ['behavior', 'conduct', 'ethics'],
+  vacation: ['leave', 'time', 'off'],
+  absence: ['absent', 'attendance'],
+};
+
+const STOPWORDS = new Set(['the', 'and', 'for', 'with', 'what', 'how', 'does', 'our', 'are', 'can', 'about', 'from', 'that', 'this', 'you', 'your']);
+
+function normalizeText(text) {
+  return String(text || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function stem(term) {
+  const value = String(term || '').toLowerCase();
+  if (value.length <= 4) return value;
+  return value.replace(/(ies|ing|ed|es|s)$/i, (suffix) => suffix === 'ies' ? 'y' : '');
+}
+
 function terms(text) {
-  return new Set(String(text).toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter((word) => word.length > 2));
+  const raw = normalizeText(text).split(' ').filter((word) => word.length > 2 && !STOPWORDS.has(word));
+  const expanded = new Set();
+  raw.forEach((word) => {
+    expanded.add(word);
+    expanded.add(stem(word));
+    (TERM_ALIASES[word] || []).forEach((alias) => {
+      expanded.add(alias);
+      expanded.add(stem(alias));
+    });
+  });
+  return expanded;
+}
+
+function editDistance(left, right) {
+  if (left === right) return 0;
+  if (!left || !right) return Math.max(left.length, right.length);
+  const previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= left.length; i += 1) {
+    let diagonal = previous[0];
+    previous[0] = i;
+    for (let j = 1; j <= right.length; j += 1) {
+      const saved = previous[j];
+      previous[j] = Math.min(previous[j] + 1, previous[j - 1] + 1, diagonal + (left[i - 1] === right[j - 1] ? 0 : 1));
+      diagonal = saved;
+    }
+  }
+  return previous[right.length];
+}
+
+function fuzzyMatch(wanted, available) {
+  if (available.has(wanted)) return 1;
+  for (const candidate of available) {
+    const limit = wanted.length >= 7 ? 2 : 1;
+    if (Math.abs(candidate.length - wanted.length) <= limit && editDistance(wanted, candidate) <= limit) return 0.55;
+  }
+  return 0;
 }
 
 function retrieveDocuments(question, documents, { policy = false } = {}) {
   const wanted = terms(question);
   const ranked = [];
-  const policyDocument = (document) => /simplify3x employee leave policy/i.test(String(document.file_name || ''));
-
-  const policyDocuments = policy ? documents.filter(policyDocument) : [];
-  const candidateDocuments = policyDocuments.length ? policyDocuments : documents;
-  candidateDocuments.forEach((document) => docChunks(document.extracted_text).forEach((chunk, index) => {
+  documents.forEach((document) => docChunks(document.extracted_text).forEach((chunk, index) => {
     const haystack = terms(chunk);
-    let score = 0;
-    wanted.forEach((term) => { if (haystack.has(term)) score += 1; });
-    if (policy && policyDocument(document)) score += 8;
-    if (score > 0) ranked.push({ score, file_name: document.file_name, chunk_index: index, chunk });
+    const exact = [...wanted].reduce((score, term) => score + fuzzyMatch(term, haystack), 0);
+    const phrase = normalizeText(chunk).includes(normalizeText(question)) ? 3 : 0;
+    const policyBoost = policy && /policy|rule|eligib|entitle|allow|conduct|ethic|leave|absence|behavior|behaviour/.test(normalizeText(chunk)) ? 1 : 0;
+    const score = exact + phrase + policyBoost;
+    if (score >= 1) ranked.push({ score, file_name: document.file_name, chunk_index: index, chunk });
   }));
   return ranked
     .sort((a, b) => b.score - a.score)
     .filter((item, index, items) => index === items.findIndex((candidate) => candidate.chunk === item.chunk && candidate.file_name === item.file_name))
+    .slice(0, 8);
+}
+
+async function retrieveIndexedDocuments(question, { policy = false } = {}) {
+  const expanded = [...terms(question)].slice(0, 30);
+  if (!expanded.length) return [];
+  const tsQuery = expanded.map((term) => `${term}:*`).join(' | ');
+  const result = await query(`
+    SELECT d.file_name, c.chunk_index, c.chunk_text AS chunk,
+           ts_rank_cd(c.search_vector, to_tsquery('simple', $1)) AS text_rank
+    FROM hcm.chatbot_document_chunks c
+    JOIN hcm.chatbot_documents d ON d.id = c.document_id
+    WHERE c.search_vector @@ to_tsquery('simple', $1)
+    ORDER BY text_rank DESC, d.uploaded_at DESC, c.chunk_index ASC
+    LIMIT 24`, [tsQuery]);
+  const ranked = result.rows.map((item) => {
+    const lexical = retrieveDocuments(question, [{ file_name: item.file_name, extracted_text: item.chunk }], { policy })[0]?.score || 0;
+    return { ...item, score: Number(item.text_rank || 0) * 10 + lexical };
+  });
+  return ranked
+    .sort((a, b) => b.score - a.score)
+    .filter((item, index, items) => index === items.findIndex((candidate) => candidate.file_name === item.file_name && candidate.chunk === item.chunk))
     .slice(0, 8);
 }
 
@@ -256,7 +335,14 @@ async function attendance(question, user) {
 
 async function buildKnowledgeContext(question, { policy = false } = {}) {
   const faqResult = await query('SELECT category, question, answer FROM hcm.faqs ORDER BY id ASC');
-  const docResult = await query('SELECT file_name, extracted_text FROM hcm.chatbot_documents ORDER BY uploaded_at DESC');
+  let documentItems;
+  try {
+    documentItems = await retrieveIndexedDocuments(question, { policy });
+  } catch (error) {
+    if (error.code !== '42P01' && error.code !== '42704') throw error;
+    const docResult = await query('SELECT file_name, extracted_text FROM hcm.chatbot_documents ORDER BY uploaded_at DESC');
+    documentItems = retrieveDocuments(question, docResult.rows, { policy });
+  }
   const contextParts = [];
   const sources = new Set();
   const appTopics = [
@@ -278,18 +364,18 @@ async function buildKnowledgeContext(question, { policy = false } = {}) {
     if (String(question).toLowerCase().includes(term)) contextParts.push(content);
   });
   const faqTerms = terms(question);
-  const documentItems = retrieveDocuments(question, docResult.rows, { policy });
-  const hasLeavePolicyDocument = documentItems.some((item) => /simplify3x employee leave policy/i.test(item.file_name));
+  const documentScore = documentItems[0]?.score || 0;
+  const hasRelevantDocument = documentItems.length > 0 && documentScore >= (policy ? 1 : 2);
   faqResult.rows.forEach((faq) => {
     const faqText = `${faq.question} ${faq.answer}`;
     const score = [...terms(faqText)].filter((term) => faqTerms.has(term)).length;
-    if (score >= 1 && !(policy && hasLeavePolicyDocument)) {
+    if (score >= 1 && !hasRelevantDocument) {
       contextParts.push(`FAQ (${faq.category || 'HR'}): ${faq.question}\n${faq.answer}`);
       sources.add(`FAQ: ${faq.category || 'HR'}`);
     }
   });
   documentItems.forEach((item) => {
-    contextParts.push(`DOCUMENT: ${item.file_name}\n${item.chunk}`);
+    contextParts.push(`DOCUMENT: ${item.file_name} (section ${Number(item.chunk_index) + 1})\n${item.chunk}`);
     sources.add(item.file_name);
   });
   return { context: contextParts.join('\n\n').slice(0, MAX_CONTEXT_CHARS), sources: [...sources] };
@@ -417,10 +503,13 @@ async function answerQuestion({ question, user, conversation = [] }) {
     }
   }
 
-  const appAnswer = applicationAnswer(text);
-  if (appAnswer) return { intent: 'application_guidance', answer: personalize(appAnswer, identity), sources: [], dataType: 'application' };
-
   const knowledge = await buildKnowledgeContext(text);
+  const appAnswer = applicationAnswer(text);
+  const hasDocumentSource = knowledge.sources.some((source) => !String(source).startsWith('FAQ:'));
+  const isApplicationWorkflow = /apply for leave|leave application|notification|saved (learning )?resources|learning hub|update my profile|edit my profile|daily games|leaderboard|community|discussion/.test(text.toLowerCase());
+  if (appAnswer && (!hasDocumentSource || isApplicationWorkflow)) {
+    return { intent: 'application_guidance', answer: personalize(appAnswer, identity), sources: [], dataType: 'application' };
+  }
   if (!knowledge.context) {
     const answer = 'I could not find verified HROrbit or approved HR knowledge for that question. Please contact HR so I do not guess.';
     return { intent: isPayrollGuidanceQuestion(text) ? 'payroll_guidance' : 'unsupported', answer: personalize(answer, identity), sources: [], dataType: 'grounded' };
@@ -437,4 +526,4 @@ async function answerQuestion({ question, user, conversation = [] }) {
   }
 }
 
-module.exports = { answerQuestion, approvedLeave, resolveEmployee, dateFromQuestion, dateRangeFromQuestion, applicationAnswer, employeeOnLeave, profile, isLeavePolicyQuestion, retrieveDocuments, buildKnowledgeContext };
+module.exports = { answerQuestion, approvedLeave, resolveEmployee, dateFromQuestion, dateRangeFromQuestion, applicationAnswer, employeeOnLeave, profile, isLeavePolicyQuestion, retrieveDocuments, retrieveIndexedDocuments, buildKnowledgeContext, docChunks };

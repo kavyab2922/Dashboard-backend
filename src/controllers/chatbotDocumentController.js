@@ -2,6 +2,27 @@
 const { PDFParse } = require('pdf-parse');
 const { pool } = require('../config/db');
 
+const CHUNK_SIZE = 1400;
+const CHUNK_OVERLAP = 180;
+
+function splitDocumentIntoChunks(text) {
+  const clean = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!clean) return [];
+  const chunks = [];
+  let start = 0;
+  while (start < clean.length) {
+    let end = Math.min(start + CHUNK_SIZE, clean.length);
+    if (end < clean.length) {
+      const boundary = clean.lastIndexOf('. ', end);
+      if (boundary > start + CHUNK_SIZE * 0.6) end = boundary + 1;
+    }
+    chunks.push(clean.slice(start, end).trim());
+    if (end >= clean.length) break;
+    start = Math.max(end - CHUNK_OVERLAP, start + 1);
+  }
+  return chunks;
+}
+
 const uploadDocument = async (req, res) => {
   if (!req.file) {
     return res.status(400).json({
@@ -44,24 +65,37 @@ if (!hasPdfSignature) {
       });
     }
 
-    const query = `
-      INSERT INTO hcm.chatbot_documents
-        (file_name, file_type, file_data, extracted_text)
-      VALUES ($1, $2, $3, $4)
-      RETURNING id, file_name, file_type, uploaded_at
-    `;
+    const chunks = splitDocumentIntoChunks(extractedText);
+    const client = await pool.connect();
 
-    const saved = await pool.query(query, [
-      originalname,
-      mimetype,
-      buffer,
-      extractedText,
-    ]);
+    try {
+      await client.query('BEGIN');
+      const saved = await client.query(`
+        INSERT INTO hcm.chatbot_documents
+          (file_name, file_type, file_data, extracted_text)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id, file_name, file_type, uploaded_at
+      `, [originalname, mimetype, buffer, extractedText]);
 
-    return res.status(201).json({
-      message: 'Document uploaded successfully.',
-      document: saved.rows[0],
-    });
+      for (const [index, chunk] of chunks.entries()) {
+        await client.query(`
+          INSERT INTO hcm.chatbot_document_chunks (document_id, chunk_index, chunk_text)
+          VALUES ($1, $2, $3)
+        `, [saved.rows[0].id, index, chunk]);
+      }
+
+      await client.query('COMMIT');
+      return res.status(201).json({
+        message: 'Document uploaded successfully.',
+        document: saved.rows[0],
+        indexedChunks: chunks.length,
+      });
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => {});
+      throw error;
+    } finally {
+      client.release();
+    }
   } catch (error) {
     console.error('Chatbot document upload failed:', error);
 

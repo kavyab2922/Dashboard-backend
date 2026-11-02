@@ -23,6 +23,27 @@ test('does not classify live or workflow leave questions as policy intent', () =
   assert.equal(isLeavePolicyQuestion('How many leaves do I have left?'), false);
 });
 
+test('retrieves abbreviations, synonyms, and spelling variations', () => {
+  const documents = [{
+    file_name: 'Simplify3x Employee Leave Policy.pdf',
+    extracted_text: 'Employees may carry forward casual leave and sick leave according to the annual entitlement rules.',
+  }];
+
+  assert.equal(retrieveDocuments('What is the CL carry forword rule?', documents, { policy: true }).length > 0, true);
+  assert.equal(retrieveDocuments('What are the workplace ethics rules?', [{
+    file_name: 'Code of Conduct.pdf',
+    extracted_text: 'Employees must follow workplace behaviour and professional ethics requirements.',
+  }], { policy: true }).length > 0, true);
+});
+
+test('rejects an unrelated document instead of returning every upload', () => {
+  const results = retrieveDocuments('How many casual leaves can I carry forward?', [{
+    file_name: 'Unrelated Benefits.pdf',
+    extracted_text: 'The office cafeteria serves lunch and provides parking information.',
+  }], { policy: true });
+  assert.equal(results.length, 0);
+});
+
 test('ranks the uploaded leave policy document for policy questions', () => {
   const documents = [
     {
